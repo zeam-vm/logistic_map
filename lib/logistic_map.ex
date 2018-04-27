@@ -53,8 +53,20 @@ defmodule LogisticMap do
   Benchmark
   """
   def benchmark(stages) do
-    :timer.tc(fn -> LogisticMap.mapCalc(1..6_700_416, 10, 6_700_417, 22, stages) end)
-    |> elem(0)
-    |> Kernel./(1000000)
+    IO.puts "stages: #{stages}"
+    IO.puts (
+      :timer.tc(fn -> LogisticMap.mapCalc(1..6_700_416, 10, 6_700_417, 22, stages) end)
+      |> elem(0)
+      |> Kernel./(1000000)
+    )
+  end
+
+  @doc """
+  Benchmarks
+  """
+  def benchmarks() do
+    [1, 2, 4, 8, 16]
+    |> Enum.map(& benchmark(&1))
+    |> Enum.to_list
   end
 end
