@@ -38,17 +38,15 @@ defmodule LogisticMap do
 
   ## Examples
 
-      iex> 1..3 |> LogisticMap.mapCalc(10, 61, 22, 4)
+      iex> 1..3 |> LogisticMap.mapCalc(10, 61, 22, 1)
       [56, 1, 13]
 
   """
   def mapCalc(list, num, p, myu, stages) do
     list
     |> Flow.from_enumerable(stages: stages)
-    |> Flow.map(& {&1, loopCalc(num, &1, p, myu)})
+    |> Flow.map(& loopCalc(num, &1, p, myu))
     |> Enum.to_list
-    |> Enum.sort(& elem(&1, 0) < elem(&2, 0))
-    |> Enum.map(& elem(&1, 1))
   end
 
   @doc """
