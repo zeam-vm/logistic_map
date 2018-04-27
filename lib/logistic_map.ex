@@ -9,11 +9,11 @@ defmodule LogisticMap do
   ## Examples
 
       iex> LogisticMap.calc(1, 61, 22)
-      22
+      44
 
   """
-  def calc(l, p, myu) do
-    rem(myu * l * (l * 1), p) 
+  def calc(x, p, myu) do
+    rem(myu * x * (x + 1), p) 
   end
 
   @doc """
@@ -22,7 +22,7 @@ defmodule LogisticMap do
   ## Examples
 
       iex> LogisticMap.loopCalc(10, 1, 61, 22)
-      56
+      52
 
   """
   def loopCalc(num, l, p, myu) do
@@ -39,7 +39,7 @@ defmodule LogisticMap do
   ## Examples
 
       iex> 1..3 |> LogisticMap.mapCalc(10, 61, 22, 1)
-      [56, 1, 13]
+      [52, 26, 5]
 
   """
   def mapCalc(list, num, p, myu, stages) do
