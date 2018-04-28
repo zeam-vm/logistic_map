@@ -55,7 +55,7 @@ defmodule LogisticMap do
   def benchmark(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> LogisticMap.mapCalc(1..6_700_416, 10, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> mapCalc(1..6_700_416, 10, 6_700_417, 22, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
