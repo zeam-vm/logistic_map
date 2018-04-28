@@ -22,12 +22,12 @@ defmodule LogisticMap do
   ## Examples
 
       iex> LogisticMap.loopCalc(10, 1, 61, 22)
-      52
+      28
 
   """
   def loopCalc(num, x, p, mu) do
     if num <= 0 do
-      calc(x, p, mu)
+      x
     else
       loopCalc(num - 1, calc(x, p, mu), p, mu)
     end
@@ -39,7 +39,7 @@ defmodule LogisticMap do
   ## Examples
 
       iex> 1..3 |> LogisticMap.mapCalc(10, 61, 22, 1)
-      [52, 26, 5]
+      [28, 25, 37]
 
   """
   def mapCalc(list, num, p, mu, stages) do
