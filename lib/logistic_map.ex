@@ -58,19 +58,19 @@ defmodule LogisticMap do
       [28, 25, 37]
 
   """
-  def mapCalc2(list, p, myu, stages) do
+  def mapCalc2(list, p, mu, stages) do
     list
     |> Flow.from_enumerable(stages: stages)
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
-    |> Flow.map(& calc(&1, p, myu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
+    |> Flow.map(& calc(&1, p, mu))
     |> Enum.to_list
   end
 
@@ -83,20 +83,20 @@ defmodule LogisticMap do
       [28, 25, 37]
 
   """
-  def mapCalc3(list, p, myu, stages) do
+  def mapCalc3(list, p, mu, stages) do
     list
     |> Flow.from_enumerable(stages: stages)
     |> Flow.map(& (&1
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
-      |> calc(p, myu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
+      |> calc(p, mu)
       ))
     |> Enum.to_list
   end
