@@ -12,8 +12,8 @@ defmodule LogisticMap do
       44
 
   """
-  def calc(x, p, myu) do
-    rem(myu * x * (x + 1), p) 
+  def calc(x, p, mu) do
+    rem(mu * x * (x + 1), p) 
   end
 
   @doc """
@@ -25,11 +25,11 @@ defmodule LogisticMap do
       52
 
   """
-  def loopCalc(num, l, p, myu) do
+  def loopCalc(num, x, p, mu) do
     if num <= 0 do
-      calc(l, p, myu)
+      calc(x, p, mu)
     else
-      loopCalc(num - 1, calc(l, p, myu), p, myu)
+      loopCalc(num - 1, calc(x, p, mu), p, mu)
     end
   end
 
@@ -42,10 +42,10 @@ defmodule LogisticMap do
       [52, 26, 5]
 
   """
-  def mapCalc(list, num, p, myu, stages) do
+  def mapCalc(list, num, p, mu, stages) do
     list
     |> Flow.from_enumerable(stages: stages)
-    |> Flow.map(& loopCalc(num, &1, p, myu))
+    |> Flow.map(& loopCalc(num, &1, p, mu))
     |> Enum.to_list
   end
 
