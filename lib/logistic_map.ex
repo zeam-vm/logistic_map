@@ -65,7 +65,7 @@ defmodule LogisticMap do
   Benchmarks
   """
   def benchmarks() do
-    [1, 2, 4, 8, 16]
+    [1, 2, 4, 8, 16, 32, 64, 128]
     |> Enum.map(& benchmark(&1))
     |> Enum.to_list
   end
