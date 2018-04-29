@@ -1,6 +1,6 @@
 # LogisticMap
 
-Benchmark of Logistic Map using integer caliculation and `Flow`.
+Benchmark of Logistic Map using integer calculation and `Flow`.
 
 ## Installation
 
