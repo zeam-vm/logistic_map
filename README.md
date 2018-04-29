@@ -4,7 +4,7 @@ Benchmark of Logistic Map using integer caliculation and `Flow`.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
+It is [available in Hex](https://hex.pm/docs/publish), so the package can be installed
 by adding `logistic_map` to your list of dependencies in `mix.exs`:
 
 ```elixir
