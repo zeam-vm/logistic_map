@@ -4,8 +4,14 @@ defmodule LogisticMap.MixProject do
   def project do
     [
       app: :logistic_map,
-      version: "0.1.0",
+      version: "1.0.0",
       elixir: "~> 1.6",
+      desctiption: "Benchmark of Logistic Map using integer caliculation and `Flow`.",
+      package: [
+        maintainers: ["Susumu Yamazaki"],
+        licenses: ["Apache 2.0"],
+        links: %{"GitHub" => "https://github.com/zeam-vm/logistic_map"}
+      ],
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
