@@ -6,7 +6,7 @@ defmodule LogisticMap.MixProject do
       app: :logistic_map,
       version: "1.0.0",
       elixir: "~> 1.6",
-      desctiption: "Benchmark of Logistic Map using integer caliculation and `Flow`.",
+      description: "Benchmark of Logistic Map using integer caliculation and `Flow`.",
       package: [
         maintainers: ["Susumu Yamazaki"],
         licenses: ["Apache 2.0"],
