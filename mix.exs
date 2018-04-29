@@ -4,7 +4,7 @@ defmodule LogisticMap.MixProject do
   def project do
     [
       app: :logistic_map,
-      version: "1.0.0",
+      version: "1.0.1",
       elixir: "~> 1.6",
       description: "Benchmark of Logistic Map using integer calculation and `Flow`.",
       package: [
