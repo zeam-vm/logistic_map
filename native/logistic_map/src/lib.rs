@@ -17,7 +17,7 @@ mod atoms {
 rustler_export_nifs! {
     "Elixir.LogisticMapNif",
     [("calc", 3, calc),
-     ("sum_list", 1, sum_list)],
+     ("map_calc", 4, map_calc)],
     None
 }
 
@@ -29,15 +29,26 @@ fn calc<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
     Ok((atoms::ok(), mu * x * (x + 1) % p).encode(env))
 }
 
-fn sum_list<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+fn loop_calc(num: i64, init: i64, p: i64, mu: i64) -> i64 {
+    let mut x: i64 = init;
+    for _i in 0..num {
+        x = mu * x * (x + 1) % p;
+    }
+    x
+}
+
+fn map_calc<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
     let iter: NifListIterator = try!(args[0].decode());
+    let num: i64 = try!(args[1].decode());
+    let p: i64 = try!(args[2].decode());
+    let mu: i64 = try!(args[3].decode());
 
     let res: Result<Vec<i64>, NifError> = iter
         .map(|x| x.decode::<i64>())
         .collect();
 
     match res {
-        Ok(result) => Ok(result.iter().fold(0, |acc, &x| acc + x).encode(env)),
+        Ok(result) => Ok(result.iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
         Err(err) => Err(err),
     }
 }

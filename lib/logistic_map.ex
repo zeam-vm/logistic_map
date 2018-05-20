@@ -161,6 +161,21 @@ defmodule LogisticMap do
 
 
   @doc """
+  Flow.map calc logistic map
+
+  ## Examples
+
+      iex> 1..3 |> LogisticMap.mapCalc5(10, 61, 22, 1)
+      [28, 25, 37]
+  """
+  def mapCalc5(list, num, p, mu, _stages) do
+    list
+    |> Enum.to_list
+    |> LogisticMapNif.map_calc(num, p, mu)
+  end
+
+
+  @doc """
   Flow.map calc logictic map
 
   ## Examples
@@ -247,6 +262,18 @@ defmodule LogisticMap do
     )
   end
 
+  @doc """
+  Benchmark
+  """
+  def benchmark6(stages) do
+    IO.puts "stages: #{stages}"
+    IO.puts (
+      :timer.tc(fn -> mapCalc4(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      |> elem(0)
+      |> Kernel./(1000000)
+    )
+  end
+
 
   @doc """
   Benchmarks
@@ -282,7 +309,16 @@ defmodule LogisticMap do
   """
   def benchmarks5() do
     [1, 2, 4, 8, 16, 32, 64, 128]
-    |> Enum.map(& benchmark4(&1))
+    |> Enum.map(& benchmark5(&1))
+    |> Enum.to_list
+  end
+
+  @doc """
+  Benchmarks
+  """
+  def benchmarks6() do
+    [1, 2, 4, 8, 16, 32, 64, 128]
+    |> Enum.map(& benchmark6(&1))
     |> Enum.to_list
   end
 end
