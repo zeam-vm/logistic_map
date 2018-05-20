@@ -15,13 +15,14 @@ mod atoms {
 
 rustler_export_nifs! {
     "Elixir.LogisticMapNif",
-    [("add", 2, add)],
+    [("calc", 3, calc)],
     None
 }
 
-fn add<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let num1: i64 = try!(args[0].decode());
-    let num2: i64 = try!(args[1].decode());
+fn calc<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+    let x: i64 = try!(args[0].decode());
+    let p: i64 = try!(args[1].decode());
+    let mu: i64 = try!(args[2].decode());
 
-    Ok((atoms::ok(), num1 + num2).encode(env))
+    Ok((atoms::ok(), mu * x * (x + 1) % p).encode(env))
 }
