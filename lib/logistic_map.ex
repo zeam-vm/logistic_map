@@ -55,7 +55,7 @@ defmodule LogisticMap do
       28
 
   """
-  def loopCalc2(num, x, p, mu) when num <= 0 do x end
+  def loopCalc2(num, x, _p, _mu) when num <= 0 do x end
   def loopCalc2(num, x, p, mu) do
     new_num = num - 1
     new_calc = calc( x, p, mu )
