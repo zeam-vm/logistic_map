@@ -1,5 +1,5 @@
 #[macro_use] extern crate rustler;
-#[macro_use] extern crate rustler_codegen;
+// #[macro_use] extern crate rustler_codegen;
 #[macro_use] extern crate lazy_static;
 
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder};
