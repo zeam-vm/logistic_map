@@ -17,7 +17,7 @@ mod atoms {
 rustler_export_nifs! {
     "Elixir.LogisticMapNif",
     [("calc", 3, calc),
-     ("map_calc", 4, map_calc)],
+     ("map_calc_list", 4, map_calc_list)],
     None
 }
 
@@ -37,7 +37,7 @@ fn loop_calc(num: i64, init: i64, p: i64, mu: i64) -> i64 {
     x
 }
 
-fn map_calc<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+fn map_calc_list<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
     let iter: NifListIterator = try!(args[0].decode());
     let num: i64 = try!(args[1].decode());
     let p: i64 = try!(args[2].decode());

@@ -159,22 +159,6 @@ defmodule LogisticMap do
     |> Enum.to_list
   end
 
-
-  @doc """
-  Flow.map calc logistic map
-
-  ## Examples
-
-      iex> 1..3 |> LogisticMap.mapCalc5(10, 61, 22, 1)
-      [28, 25, 37]
-  """
-  def mapCalc5(list, num, p, mu, _stages) do
-    list
-    |> Enum.to_list
-    |> LogisticMapNif.map_calc(num, p, mu)
-  end
-
-
   @doc """
   Flow.map calc logictic map
 
@@ -189,6 +173,23 @@ defmodule LogisticMap do
     |> Flow.from_enumerable(stages: stages)
     |> Flow.map(& loopCalc2(num, &1, p, mu))
     |> Enum.to_list
+  end
+
+  @doc """
+  Flow.map calc logistic map
+
+  ## Examples
+
+      iex> 1..3 |> LogisticMap.mapCalc5(10, 61, 22, 1)
+      [28, 25, 37]
+  """
+  def mapCalc5(list, num, p, mu, stages) do
+    list
+    |> Stream.chunk_every(stages + 1)
+    |> Flow.from_enumerable(stages: stages)
+    |> Flow.map( &LogisticMapNif.map_calc_list(&1, num, p, mu))
+    |> Enum.to_list
+    |> List.flatten
   end
 
   @doc """
