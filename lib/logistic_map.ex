@@ -17,6 +17,19 @@ defmodule LogisticMap do
   end
 
   @doc """
+  calc logistic map.
+
+  ## Examples
+
+      iex> LogisticMap.calc2(1, 61, 22)
+      44
+
+  """
+  def calc2(x, p, mu) do
+    elem(LogisticMapNif.calc(x, p, mu), 1)
+  end
+
+  @doc """
   loop logistic map
 
   ## Examples
@@ -124,6 +137,34 @@ defmodule LogisticMap do
 
   ## Examples
 
+      iex> 1..3 |> LogisticMap.mapCalc4(61, 22, 1)
+      [28, 25, 37]
+
+  """
+  def mapCalc4(list, p, mu, stages) do
+    list
+    |> Flow.from_enumerable(stages: stages)
+    |> Flow.map(& (&1
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      |> calc2(p, mu)
+      ))
+    |> Enum.to_list
+  end
+
+
+  @doc """
+  Flow.map calc logictic map
+
+  ## Examples
+
       iex> 1..3 |> LogisticMap.mapCalc4(10, 61, 22, 1)
       [28, 25, 37]
 
@@ -193,6 +234,20 @@ defmodule LogisticMap do
     |> Enum.to_list
   end
 
+
+  @doc """
+  Benchmark
+  """
+  def benchmark5(stages) do
+    IO.puts "stages: #{stages}"
+    IO.puts (
+      :timer.tc(fn -> LogisticMap.mapCalc4(1..0x2000000, 6_700_417, 22, stages) end)
+      |> elem(0)
+      |> Kernel./(1000000)
+    )
+  end
+
+
   @doc """
   Benchmarks
   """
@@ -216,6 +271,16 @@ defmodule LogisticMap do
   Benchmarks
   """
   def benchmarks4() do
+    [1, 2, 4, 8, 16, 32, 64, 128]
+    |> Enum.map(& benchmark4(&1))
+    |> Enum.to_list
+  end
+
+
+  @doc """
+  Benchmarks
+  """
+  def benchmarks5() do
     [1, 2, 4, 8, 16, 32, 64, 128]
     |> Enum.map(& benchmark4(&1))
     |> Enum.to_list

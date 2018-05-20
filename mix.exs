@@ -22,7 +22,8 @@ defmodule LogisticMap.MixProject do
   defp rustler_crates() do
     [logistic_map: [
       path: "native/logistic_map",
-      mode: (if Mix.env == :prod, do: :release, else: :debug),
+      # mode: (if Mix.env == :prod, do: :release, else: :debug)
+      mode: :release
     ]]
   end
 
