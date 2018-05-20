@@ -192,6 +192,25 @@ defmodule LogisticMap do
     |> List.flatten
   end
 
+
+  @doc """
+  Flow.map calc logistic map
+
+  ## Examples
+
+      iex> 1..3 |> LogisticMap.mapCalc6(10, 61, 22, 1)
+      [28, 25, 37]
+  """
+  def mapCalc6(list, num, p, mu, stages) do
+    list
+    |> Stream.chunk_every(stages + 1)
+    |> Flow.from_enumerable(stages: stages)
+    |> Flow.map( &LogisticMapNif.map_calc_binary(&1 |> Enum.reduce("", fn x, acc -> acc<><<x>> end), num, p, mu))
+    |> Enum.to_list
+    |> List.flatten
+  end
+
+
   @doc """
   Benchmark
   """
@@ -269,12 +288,24 @@ defmodule LogisticMap do
   def benchmark6(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> mapCalc4(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> mapCalc5(1..0x2000000, 10, 6_700_417, 22, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
   end
 
+
+  @doc """
+  Benchmark
+  """
+  def benchmark7(stages) do
+    IO.puts "stages: #{stages}"
+    IO.puts (
+      :timer.tc(fn -> mapCalc6(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      |> elem(0)
+      |> Kernel./(1000000)
+    )
+  end
 
   @doc """
   Benchmarks
@@ -320,6 +351,15 @@ defmodule LogisticMap do
   def benchmarks6() do
     [1, 2, 4, 8, 16, 32, 64, 128]
     |> Enum.map(& benchmark6(&1))
+    |> Enum.to_list
+  end
+
+  @doc """
+  Benchmarks
+  """
+  def benchmarks7() do
+    [1, 2, 4, 8, 16, 32, 64, 128]
+    |> Enum.map(& benchmark7(&1))
     |> Enum.to_list
   end
 end
