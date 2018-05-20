@@ -5,6 +5,9 @@
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder, NifError};
 use rustler::types::list::NifListIterator;
 use rustler::types::binary::{ NifBinary };
+use std::mem;
+use std::slice;
+use std::str;
 
 mod atoms {
     rustler_atoms! {
@@ -19,6 +22,7 @@ rustler_export_nifs! {
     "Elixir.LogisticMapNif",
     [("calc", 3, calc),
      ("map_calc_list", 4, map_calc_list),
+     ("to_binary", 1, to_binary),
      ("map_calc_binary", 4, map_calc_binary)],
     None
 }
@@ -55,6 +59,26 @@ fn map_calc_list<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm
     }
 }
 
+fn to_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+    let iter: NifListIterator = try!(args[0].decode());
+    let res: Result<Vec<i64>, NifError> = iter
+        .map(|x| x.decode::<i64>())
+        .collect();
+    match res {
+        Ok(result) => Ok(result.iter().map(|i| unsafe {
+            let ip: *const i64 = i;
+            let bp: *const u8 = ip as *const _;
+            let _bs: &[u8] = {
+                slice::from_raw_parts(bp, mem::size_of::<i64>())
+            };
+            *bp
+        }).collect::<Vec<u8>>()
+        .iter().map(|&s| s as char).collect::<String>()
+        .encode(env)),
+        Err(err) => Err(err),
+    }
+}
+
 fn map_calc_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
     let in_binary : NifBinary = args[0].decode()?;
     let num: i64 = try!(args[1].decode());
@@ -62,6 +86,5 @@ fn map_calc_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTe
     let mu: i64 = try!(args[3].decode());
 
     let res = in_binary.iter().map(|&s| s as i64).map(|x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>();
-
     Ok(res.encode(env))
 }
