@@ -13,7 +13,7 @@ defmodule LogisticMap do
 
   """
   def calc(x, p, mu) do
-    rem(mu * x * (x + 1), p) 
+    rem(mu * x * (x + 1), p)
   end
 
   @doc """

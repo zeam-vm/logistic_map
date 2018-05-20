@@ -24,3 +24,6 @@ logistic_map-*.tar
 
 # Ignore mix.lock
 mix.lock
+
+# Ignore priv
+/priv/

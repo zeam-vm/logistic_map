@@ -6,6 +6,8 @@ defmodule LogisticMap.MixProject do
       app: :logistic_map,
       version: "1.0.1",
       elixir: "~> 1.6",
+      compilers: [:rustler] ++ Mix.compilers,
+      rustler_crates: rustler_crates(),
       description: "Benchmark of Logistic Map using integer calculation and `Flow`.",
       package: [
         maintainers: ["Susumu Yamazaki"],
@@ -15,6 +17,13 @@ defmodule LogisticMap.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
+  end
+
+  defp rustler_crates() do
+    [logistic_map: [
+      path: "native/logistic_map",
+      mode: (if Mix.env == :prod, do: :release, else: :debug),
+    ]]
   end
 
   # Run "mix help compile.app" to learn about applications.
