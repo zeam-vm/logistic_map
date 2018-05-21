@@ -228,11 +228,27 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.mapCalc6(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def mapCalc6(list, num, p, mu, stages) do
+  def mapCalc6(list, num, p, mu, stages) when stages <= @stages_threshold do
     list
     |> Stream.chunk_every(stages + 1)
     |> Flow.from_enumerable(stages: stages)
     |> Flow.map( &LogisticMapNif.map_calc_binary(&1 |> Enum.reduce("", fn x, acc -> acc<><<x>> end), num, p, mu))
+    |> Enum.to_list
+    |> List.flatten
+  end
+  def mapCalc6(list, num, p, mu, stages) when stages > @stages_threshold do
+    list
+    |> Stream.chunk_every(stages + 1)
+    |> Flow.from_enumerable(stages: stages)
+    |> Flow.map(fn(i) ->
+      i
+      |> Stream.chunk_every(@logistic_map_chunk_num)
+      |> Enum.map(fn(j) ->
+        j
+        |> Enum.reduce("", fn (x, acc) -> acc<><<x>> end)
+        |> LogisticMapNif.map_calc_binary(num, p, mu)
+        end)
+      end) 
     |> Enum.to_list
     |> List.flatten
   end
