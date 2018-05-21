@@ -1,4 +1,13 @@
 defmodule LogisticMap do
+
+  @stages_threshold 4
+  @logistic_map_size      0x2000000
+  @logistic_map_chunk_num 0x10000
+  @default_prime 6_700_417
+  @default_mu 22
+  @default_loop 10
+
+
   @moduledoc """
   Documentation for LogisticMap.
   """
@@ -183,11 +192,29 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.mapCalc5(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def mapCalc5(list, num, p, mu, stages) do
+  def mapCalc5(list, num, p, mu, stages) when stages <= @stages_threshold do 
     list
     |> Stream.chunk_every(stages + 1)
     |> Flow.from_enumerable(stages: stages)
-    |> Flow.map( &LogisticMapNif.map_calc_list(&1, num, p, mu))
+    |> Flow.map(fn(i) -> 
+    	i 
+    	|> LogisticMapNif.map_calc_list(num, p, mu)
+    	end)
+    |> Enum.to_list
+    |> List.flatten
+  end
+  def mapCalc5(list, num, p, mu, stages) when stages > @stages_threshold do
+    list
+    |> Stream.chunk_every(stages + 1)
+    |> Flow.from_enumerable(stages: stages)
+    |> Flow.map(fn(i) -> 
+    	i 
+    	|> Stream.chunk_every(@logistic_map_chunk_num) 
+    	|> Enum.map(fn(j) -> 
+    		j 
+    		|> LogisticMapNif.map_calc_list(num, p, mu)
+    		end)
+    	end)
     |> Enum.to_list
     |> List.flatten
   end
@@ -236,7 +263,7 @@ defmodule LogisticMap do
   def benchmark(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> mapCalc(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> mapCalc(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
@@ -248,7 +275,7 @@ defmodule LogisticMap do
   def benchmark2(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> LogisticMap.mapCalc2(1..0x2000000, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> LogisticMap.mapCalc2(1..@logistic_map_size, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
@@ -261,7 +288,7 @@ defmodule LogisticMap do
   def benchmark3(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> LogisticMap.mapCalc3(1..0x2000000, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> LogisticMap.mapCalc3(1..@logistic_map_size, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
@@ -274,20 +301,11 @@ defmodule LogisticMap do
   def benchmark4(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> mapCalc4(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> mapCalc4(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
   end
-  @doc """
-  Benchmarks
-  """
-  def benchmarks() do
-    [1, 2, 4, 8, 16, 32, 64, 128]
-    |> Enum.map(& benchmark(&1))
-    |> Enum.to_list
-  end
-
 
   @doc """
   Benchmark
@@ -295,7 +313,7 @@ defmodule LogisticMap do
   def benchmark5(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> LogisticMap.mapCalc4(1..0x2000000, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> LogisticMap.mapCalc4(1..@logistic_map_size, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
@@ -307,7 +325,7 @@ defmodule LogisticMap do
   def benchmark6(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> mapCalc5(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> mapCalc5(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
@@ -320,7 +338,7 @@ defmodule LogisticMap do
   def benchmark7(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> mapCalc6(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> mapCalc6(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
@@ -333,10 +351,19 @@ defmodule LogisticMap do
   def benchmark8(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> mapCalc7(1..0x2000000, 10, 6_700_417, 22, stages) end)
+      :timer.tc(fn -> mapCalc7(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
     )
+  end
+
+  @doc """
+  Benchmarks
+  """
+  def benchmarks() do
+    [1, 2, 4, 8, 16, 32, 64, 128]
+    |> Enum.map(& benchmark(&1))
+    |> Enum.to_list
   end
 
   @doc """
