@@ -27,3 +27,6 @@ mix.lock
 
 # Ignore priv
 /priv/
+
+# Ignore log.txt
+log.txt
