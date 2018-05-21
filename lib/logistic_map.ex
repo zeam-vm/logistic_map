@@ -462,4 +462,19 @@ defmodule LogisticMap do
     |> Enum.map(& benchmark8(&1))
     |> Enum.to_list
   end
+
+  def allbenchmarks() do
+    [{"benchmarks", &benchmarks/0},
+     {"benchmarks2", &benchmarks2/0},
+     {"benchmarks3", &benchmarks3/0},
+     {"benchmarks4", &benchmarks4/0},
+     {"benchmarks5", &benchmarks5/0},
+     {"benchmarks6", &benchmarks6/0},
+     {"benchmarks7", &benchmarks7/0}, 
+     {"benchmarks8", &benchmarks8/0}]
+    |> Enum.map(fn (x) ->
+      IO.puts elem(x, 0)
+      elem(x, 1).()
+    end)
+  end
 end
