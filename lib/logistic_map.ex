@@ -2,7 +2,7 @@ defmodule LogisticMap do
 
   @stages_threshold 4
   @logistic_map_size      0x2000000
-  @logistic_map_chunk_num 0x10000
+  @logistic_map_chunk_num 0x100
   @default_prime 6_700_417
   @default_mu 22
   @default_loop 10
@@ -192,18 +192,12 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.mapCalc5(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def mapCalc5(list, num, p, mu, stages) when stages <= @stages_threshold do 
+  def mapCalc5(list, num, p, mu, stages) when stages <= 1 do 
     list
-    |> Stream.chunk_every(stages + 1)
-    |> Flow.from_enumerable(stages: stages)
-    |> Flow.map(fn(i) -> 
-    	i 
-    	|> LogisticMapNif.map_calc_list(num, p, mu)
-    	end)
     |> Enum.to_list
-    |> List.flatten
+    |> LogisticMapNif.map_calc_list(num, p, mu)
   end
-  def mapCalc5(list, num, p, mu, stages) when stages > @stages_threshold do
+  def mapCalc5(list, num, p, mu, stages) when stages > 1 do
     list
     |> Stream.chunk_every(stages + 1)
     |> Flow.from_enumerable(stages: stages)
