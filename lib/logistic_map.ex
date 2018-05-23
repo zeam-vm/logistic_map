@@ -292,7 +292,7 @@ defmodule LogisticMap do
   @doc """
   Benchmark
   """
-  def benchmark(stages) do
+  def benchmark1(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
       :timer.tc(fn -> mapCalc(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
@@ -345,18 +345,6 @@ defmodule LogisticMap do
   def benchmark5(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
-      :timer.tc(fn -> LogisticMap.mapCalc4(1..@logistic_map_size, @default_prime, @default_mu, stages) end)
-      |> elem(0)
-      |> Kernel./(1000000)
-    )
-  end
-
-  @doc """
-  Benchmark
-  """
-  def benchmark6(stages) do
-    IO.puts "stages: #{stages}"
-    IO.puts (
       :timer.tc(fn -> mapCalc5(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
       |> elem(0)
       |> Kernel./(1000000)
@@ -367,7 +355,7 @@ defmodule LogisticMap do
   @doc """
   Benchmark
   """
-  def benchmark7(stages) do
+  def benchmark6(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
       :timer.tc(fn -> mapCalc6(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
@@ -380,7 +368,7 @@ defmodule LogisticMap do
   @doc """
   Benchmark
   """
-  def benchmark8(stages) do
+  def benchmark7(stages) do
     IO.puts "stages: #{stages}"
     IO.puts (
       :timer.tc(fn -> mapCalc7(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
@@ -392,9 +380,9 @@ defmodule LogisticMap do
   @doc """
   Benchmarks
   """
-  def benchmarks() do
+  def benchmarks1() do
     [1, 2, 4, 8, 16, 32, 64, 128]
-    |> Enum.map(& benchmark(&1))
+    |> Enum.map(& benchmark1(&1))
     |> Enum.reduce(0, fn _lst, acc -> acc end)
   end
 
@@ -454,24 +442,15 @@ defmodule LogisticMap do
     |> Enum.reduce(0, fn _lst, acc -> acc end)
   end
 
-  @doc """
-  Benchmarks
-  """
-  def benchmarks8() do
-    [1, 2, 4, 8, 16, 32, 64, 128]
-    |> Enum.map(& benchmark8(&1))
-    |> Enum.reduce(0, fn _lst, acc -> acc end)
-  end
 
   def allbenchmarks() do
-    [{&benchmarks/0,  "benchmarks1: pure Elixir(loop)"},
+    [{&benchmarks1/0, "benchmarks1: pure Elixir(loop)"},
      {&benchmarks2/0, "benchmarks2: pure Elixir(inlining outside of Flow.map)"},
      {&benchmarks3/0, "benchmarks3: pure Elixir(inlining inside of Flow.map)"},
      {&benchmarks4/0, "benchmarks4: pure Elixir(loop: variation)"},
-     # {&benchmarks5/0, "benchmarks5: pure Elixir(loop: variation)"},
-     {&benchmarks6/0, "benchmarks6: Rustler loop, passing by list"},
-     {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Elixir"}, 
-     {&benchmarks8/0, "benchmarks8: Rustler loop, passing by binary created by Rustler"}]
+     {&benchmarks5/0, "benchmarks5: Rustler loop, passing by list"},
+     {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"}, 
+     {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"}]
     |> Enum.map(fn (x) ->
       IO.puts elem(x, 1)
       elem(x, 0).()
