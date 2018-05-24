@@ -288,7 +288,12 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.mapCalc8(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def mapCalc8(list, num, p, mu, stages) do
+  def mapCalc8(list, num, p, mu, stages) when stages <= 1 do
+    list
+    |> Enum.to_list
+    |> LogisticMapNif.map_calc_list(num, p, mu)
+  end
+  def mapCalc8(list, num, p, mu, stages) when stages > 1 do
     window = Flow.Window.global
     |> Flow.Window.trigger_every(@logistic_map_chunk_num, :reset)
 
