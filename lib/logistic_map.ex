@@ -280,6 +280,26 @@ defmodule LogisticMap do
     |> List.flatten
   end
 
+  @doc """
+  Flow.map calc logistic map
+
+  ## Examples
+
+      iex> 1..3 |> LogisticMap.mapCalc8(10, 61, 22, 1)
+      [28, 25, 37]
+  """
+  def mapCalc8(list, num, p, mu, stages) do
+    window = Flow.Window.global
+    |> Flow.Window.trigger_every(@logistic_map_chunk_num, :reset)
+
+    list
+    |> Flow.from_enumerable
+    |> Flow.partition(window: window, stages: stages)
+    |> Flow.reduce(fn -> [] end, fn e, acc -> [e | acc] end)
+    |> Flow.map_state(& &1 |> LogisticMapNif.map_calc_list(num, p, mu))
+    |> Flow.emit(:state)
+    |> Enum.to_list
+  end
 
 
   @doc """
@@ -371,6 +391,18 @@ defmodule LogisticMap do
   end
 
   @doc """
+  Benchmark
+  """
+  def benchmark8(stages) do
+    IO.puts "stages: #{stages}"
+    IO.puts (
+      :timer.tc(fn -> mapCalc8(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
+      |> elem(0)
+      |> Kernel./(1000000)
+    )
+  end
+
+  @doc """
   Benchmarks
   """
   def benchmarks1() do
@@ -436,6 +468,15 @@ defmodule LogisticMap do
   end
 
 
+  @doc """
+  Benchmarks
+  """
+  def benchmarks8() do
+    [1, 2, 4, 8, 16, 32, 64, 128]
+    |> Enum.map(& benchmark8(&1))
+    |> Enum.reduce(0, fn _lst, acc -> acc end)
+  end
+
   def allbenchmarks() do
     [{&benchmarks1/0, "benchmarks1: pure Elixir(loop)"},
      {&benchmarks2/0, "benchmarks2: pure Elixir(inlining outside of Flow.map)"},
@@ -443,7 +484,8 @@ defmodule LogisticMap do
      {&benchmarks4/0, "benchmarks4: pure Elixir(loop: variation)"},
      {&benchmarks5/0, "benchmarks5: Rustler loop, passing by list"},
      {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"},
-     {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"}]
+     {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"},
+     {&benchmarks8/0, "benchmarks8: Rustler loop, passing by list, with Window"}]
     |> Enum.map(fn (x) ->
       IO.puts elem(x, 1)
       elem(x, 0).()
