@@ -256,17 +256,16 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.mapCalc7(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def mapCalc7(list, num, p, mu, stages) when stages <= @stages_threshold do
+  def mapCalc7(list, num, p, mu, stages) when stages <= 1 do
     list
-    |> Stream.chunk_every(stages + 1)
-    |> Flow.from_enumerable(stages: stages)
-    |> Flow.map( &LogisticMapNif.map_calc_binary(&1 |> LogisticMapNif.to_binary, num, p, mu))
     |> Enum.to_list
-    |> List.flatten
+    |> LogisticMapNif.to_binary
+    |> LogisticMapNif.map_calc_binary(num, p, mu)
   end
-  def mapCalc7(list, num, p, mu, stages) when stages > @stages_threshold do
+  def mapCalc7(list, num, p, mu, stages) when stages > 1 do
+    chunk_size = div(Enum.count(list) - 1, stages) + 1
     list
-    |> Stream.chunk_every(stages + 1)
+    |> Stream.chunk_every(chunk_size)
     |> Flow.from_enumerable(stages: stages)
     |> Flow.map(fn(i) ->
       i
