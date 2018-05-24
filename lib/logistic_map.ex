@@ -285,8 +285,8 @@ defmodule LogisticMap do
 
   ## Examples
 
-      iex> 1..3 |> LogisticMap.mapCalc8(10, 61, 22, 1)
-      [28, 25, 37]
+      iex> 1..3 |> LogisticMap.mapCalc8(10, 61, 22, 1) |> Enum.sort
+      [25, 28, 37]
   """
   def mapCalc8(list, num, p, mu, stages) when stages <= 1 do
     list
