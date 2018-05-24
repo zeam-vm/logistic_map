@@ -2,7 +2,7 @@ defmodule LogisticMap do
 
   @stages_threshold 4
   @logistic_map_size      0x2000000
-  @logistic_map_chunk_num 0x100
+  @logistic_map_chunk_num 0x400
   @default_prime 6_700_417
   @default_mu 22
   @default_loop 10
@@ -192,20 +192,21 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.mapCalc5(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def mapCalc5(list, num, p, mu, stages) when stages <= 1 do 
+  def mapCalc5(list, num, p, mu, stages) when stages <= 1 do
     list
     |> Enum.to_list
     |> LogisticMapNif.map_calc_list(num, p, mu)
   end
   def mapCalc5(list, num, p, mu, stages) when stages > 1 do
+    chunk_size = div(Enum.count(list) - 1, stages) + 1
     list
-    |> Stream.chunk_every(stages + 1)
+    |> Stream.chunk_every(chunk_size)
     |> Flow.from_enumerable(stages: stages)
-    |> Flow.map(fn(i) -> 
-    	i 
-    	|> Stream.chunk_every(@logistic_map_chunk_num) 
-    	|> Enum.map(fn(j) -> 
-    		j 
+    |> Flow.map(fn(i) ->
+    	i
+    	|> Stream.chunk_every(@logistic_map_chunk_num)
+    	|> Enum.map(fn(j) ->
+    		j
     		|> LogisticMapNif.map_calc_list(num, p, mu)
     		end)
     	end)
@@ -242,7 +243,7 @@ defmodule LogisticMap do
         |> Enum.reduce("", fn (x, acc) -> acc<><<x>> end)
         |> LogisticMapNif.map_calc_binary(num, p, mu)
         end)
-      end) 
+      end)
     |> Enum.to_list
     |> List.flatten
   end
@@ -443,7 +444,7 @@ defmodule LogisticMap do
      {&benchmarks3/0, "benchmarks3: pure Elixir(inlining inside of Flow.map)"},
      {&benchmarks4/0, "benchmarks4: pure Elixir(loop: variation)"},
      {&benchmarks5/0, "benchmarks5: Rustler loop, passing by list"},
-     {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"}, 
+     {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"},
      {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"}]
     |> Enum.map(fn (x) ->
       IO.puts elem(x, 1)
