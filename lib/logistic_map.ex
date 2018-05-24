@@ -1,6 +1,5 @@
 defmodule LogisticMap do
 
-  @stages_threshold 4
   @logistic_map_size      0x2000000
   @logistic_map_chunk_num 0x400
   @default_prime 6_700_417
@@ -285,8 +284,8 @@ defmodule LogisticMap do
 
   ## Examples
 
-      iex> 1..3 |> LogisticMap.mapCalc8(10, 61, 22, 1) |> Enum.sort
-      [25, 28, 37]
+      iex> 1..3 |> LogisticMap.mapCalc8(10, 61, 22, 1)
+      [28, 25, 37]
   """
   def mapCalc8(list, num, p, mu, stages) when stages <= 1 do
     list
