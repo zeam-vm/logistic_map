@@ -1,7 +1,6 @@
 defmodule LogisticMap do
 
   @logistic_map_size      0x2000000
-  @logistic_map_chunk_num 0x400
   @default_prime 6_700_417
   @default_mu 22
   @default_loop 10
@@ -203,7 +202,7 @@ defmodule LogisticMap do
     |> Flow.from_enumerable(stages: stages)
     |> Flow.map(fn(i) ->
     	i
-    	|> Stream.chunk_every(@logistic_map_chunk_num)
+    	|> Stream.chunk_every(LogisticMapNif.get_env("LogisticMapNif_map_calc_list"))
     	|> Enum.map(fn(j) ->
     		j
     		|> LogisticMapNif.map_calc_list(num, p, mu)
@@ -235,7 +234,7 @@ defmodule LogisticMap do
     |> Flow.from_enumerable(stages: stages)
     |> Flow.map(fn(i) ->
       i
-      |> Stream.chunk_every(@logistic_map_chunk_num)
+      |> Stream.chunk_every(LogisticMapNif.get_env("LogisticMapNif_map_calc_binary"))
       |> Enum.map(fn(j) ->
         j
         |> Enum.reduce("", fn (x, acc) -> acc<><<x>> end)
@@ -268,7 +267,7 @@ defmodule LogisticMap do
     |> Flow.from_enumerable(stages: stages)
     |> Flow.map(fn(i) ->
       i
-      |> Stream.chunk_every(@logistic_map_chunk_num)
+      |> Stream.chunk_every(LogisticMapNif.get_env("LogisticMapNif_map_calc_binary_to_binary"))
       |> Enum.map(fn(j) ->
         j
         |> LogisticMapNif.to_binary
@@ -294,7 +293,7 @@ defmodule LogisticMap do
   end
   def mapCalc8(list, num, p, mu, stages) when stages > 1 do
     window = Flow.Window.global
-    |> Flow.Window.trigger_every(@logistic_map_chunk_num, :reset)
+    |> Flow.Window.trigger_every(LogisticMapNif.get_env("LogisticMapNif_map_calc_list"), :reset)
 
     list
     |> Flow.from_enumerable
@@ -482,7 +481,10 @@ defmodule LogisticMap do
   end
 
   def allbenchmarks() do
-    [{&benchmarks1/0, "benchmarks1: pure Elixir(loop)"},
+    LogisticMapNif.init
+
+    [
+     {&benchmarks1/0, "benchmarks1: pure Elixir(loop)"},
      {&benchmarks2/0, "benchmarks2: pure Elixir(inlining outside of Flow.map)"},
      {&benchmarks3/0, "benchmarks3: pure Elixir(inlining inside of Flow.map)"},
      {&benchmarks4/0, "benchmarks4: pure Elixir(loop: variation)"},
