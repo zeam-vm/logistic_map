@@ -4,11 +4,7 @@ Benchmark of Logistic Map using integer calculation and `Flow`.
 
 ## Installation
 
-Install rust as follows before install this benchmark if you use Mac and HomeBrew:
-
-```bash
-$ brew install rust
-```
+Install rustup to install Rust tool chain according to https://rustup.rs 
 
 It is [available in Hex](https://hex.pm/docs/publish), so the package can be installed
 by adding `logistic_map` to your list of dependencies in `mix.exs`:
