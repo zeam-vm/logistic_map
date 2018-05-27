@@ -4,13 +4,19 @@ Benchmark of Logistic Map using integer calculation and `Flow`.
 
 ## Installation
 
+Install rust as follows before install this benchmark if you use Mac and HomeBrew:
+
+```bash
+$ brew install rust
+```
+
 It is [available in Hex](https://hex.pm/docs/publish), so the package can be installed
 by adding `logistic_map` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:logistic_map, "~> 0.1.0"}
+    {:logistic_map, "~> 1.1.0"}
   ]
 end
 ```
@@ -21,61 +27,26 @@ be found at [https://hexdocs.pm/logistic_map](https://hexdocs.pm/logistic_map).
 
 ## Usage
 
-To run benchmark,
+To run all benchmarks,
 
 ```bash
-$ mix run -e "LogisticMap.benchmarks"
+$ mix run -e "LogisticMap.allbenchmarks"
 ```
 
-benchmark calls calculation recursively from Flow.map.
+The scores are better if it is smaller.
 
-```elixir
-def loopCalc(num, x, p, mu) do
-  if num <= 0 do
-    x
-  else
-    loopCalc(num - 1, calc(x, p, mu), p, mu)
-  end
-end
+The benchmarks consists of as follows:
 
-def mapCalc(list, num, p, mu, stages) do
-  list
-  |> Flow.from_enumerable(stages: stages)
-  |> Flow.map(& loopCalc(num, &1, p, mu))
-  |> Enum.to_list
-end
-```
+|benchmark name|description|
+|:-------------|:----------|
+|benchmarks1   |pure Elixir(loop)|
+|benchmarks2   |pure Elixir(inlining outside of Flow.map)|
+|benchmarks3   |pure Elixir(inlining inside of Flow.map)|
+|benchmarks4   |pure Elixir(loop: variation)|
+|benchmarks5   |Rustler loop, passing by list|
+|benchmarks6   |Rustler loop, passing by binary created by Elixir|
+|benchmarks7   |Rustler loop, passing by binary created by Rustler|
+|benchmarks8   |Rustler loop, passing by list, with Window|
 
-benchmarks2 and benchmarks3 are variations of benchmark.
 
-```bash
-$ mix run -e "LogisticMap.benchmarks2"
-$ mix run -e "LogisticMap.benchmarks3"
-```
-
-benchmarks2 inlines `Flow.map` as follows:
-
-```elixir
-list
-|> Flow.from_enumerable(stages: stages)
-|> Flow.map(& calc(&1, p, mu))
-|> Flow.map(& calc(&1, p, mu))
-...
-|> Flow.map(& calc(&1, p, mu))
-|> Enum.to_list
-```
-
-benchmark3 inlines inside of `Flow.map` as folows:
-
-```elixir
-list
-|> Flow.from_enumerable(stages: stages)
-|> Flow.map(& (&1
-  |> calc(p, mu)
-  |> calc(p, mu)
-...
-  |> calc(p, mu)
-  ))
-|> Enum.to_list
-```
-
+ 
