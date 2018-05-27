@@ -2,12 +2,20 @@
 // #[macro_use] extern crate rustler_codegen;
 #[macro_use] extern crate lazy_static;
 
+#[link(name="logimap", kind="static")]
+
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder, NifError};
 use rustler::types::list::NifListIterator;
 use rustler::types::binary::{ NifBinary };
 use std::mem;
 use std::slice;
 use std::str;
+
+use std::os::raw::c_long;
+
+extern {
+    fn add_c(_x: c_long, _y:c_long) -> c_long;
+}
 
 mod atoms {
     rustler_atoms! {
@@ -23,8 +31,15 @@ rustler_export_nifs! {
     [("calc", 3, calc),
      ("map_calc_list", 4, map_calc_list),
      ("to_binary", 1, to_binary),
-     ("map_calc_binary", 4, map_calc_binary)],
+     ("map_calc_binary", 4, map_calc_binary),
+     ("add", 2, add)],
     None
+}
+
+fn add<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+    let x: i64 = try!(args[0].decode());
+    let y: i64 = try!(args[1].decode());
+    Ok((unsafe{add_c(x, y)}).encode(env))
 }
 
 fn calc<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {

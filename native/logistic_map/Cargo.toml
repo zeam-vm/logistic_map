@@ -2,13 +2,19 @@
 name = "logistic_map"
 version = "0.1.0"
 authors = []
+links = "logimap"
+build = "build.rs"
 
 [lib]
 name = "logistic_map"
 path = "src/lib.rs"
 crate-type = ["dylib"]
+libc = "0.2.0"
 
 [dependencies]
 rustler = "0.16.0"
 rustler_codegen = "0.16.0"
 lazy_static = "0.2"
+
+[build-dependencies]
+gcc = "0.3"

@@ -11,6 +11,18 @@ defmodule LogisticMap do
   """
 
   @doc """
+  testing code
+
+  ## Examples
+
+      iex> LogisticMap.add(1, 2)
+      3
+  """
+  def add(x, y) do
+    LogisticMapNif.add(x, y)
+  end
+
+  @doc """
   calc logistic map.
 
   ## Examples
