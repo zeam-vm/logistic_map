@@ -96,7 +96,7 @@ fn map_calc_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTe
 
 fn trivial() -> ocl::Result<()> {
     let src = r#"
-        __kernel void add(__global float* buffer, float scalar) {
+        __kernel void add(__global long* buffer, long scalar) {
             buffer[get_global_id(0)] += scalar;
         }
     "#;
@@ -106,16 +106,16 @@ fn trivial() -> ocl::Result<()> {
         .dims(1 << 20)
         .build()?;
 
-    let buffer = pro_que.create_buffer::<f32>()?;
+    let buffer = pro_que.create_buffer::<i64>()?;
 
     let kernel = pro_que.kernel_builder("add")
         .arg(&buffer)
-        .arg(10.0f32)
+        .arg(10i64)
         .build()?;
 
     unsafe { kernel.enq()?; }
 
-    let mut vec = vec![0.0f32; buffer.len()];
+    let mut vec = vec![0i64; buffer.len()];
     buffer.read(&mut vec).enq()?;
 
     println!("The value at index[{}] is now '{}'!", 200007, vec[200007]);
