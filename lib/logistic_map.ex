@@ -11,6 +11,18 @@ defmodule LogisticMap do
   """
 
   @doc """
+
+  ## Examples
+
+      iex> LogisticMap.call_ocl
+      :ok
+  """
+  def call_ocl do
+    LogisticMapNif.call_ocl
+  end
+
+
+  @doc """
   calc logistic map.
 
   ## Examples
