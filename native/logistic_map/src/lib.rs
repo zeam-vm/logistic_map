@@ -7,6 +7,7 @@ extern crate ocl;
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder, NifError};
 use rustler::types::list::NifListIterator;
 use rustler::types::binary::{ NifBinary };
+// use rustler::schedule::NifScheduleFlags;
 use std::mem;
 use std::slice;
 use std::str;
@@ -28,6 +29,7 @@ rustler_export_nifs! {
      ("map_calc_list", 4, map_calc_list),
      ("to_binary", 1, to_binary),
      ("map_calc_binary", 4, map_calc_binary),
+//     ("call_ocl", 3, call_ocl, NifScheduleFlags::DirtyCpu)],
      ("call_ocl", 3, call_ocl)],
     None
 }

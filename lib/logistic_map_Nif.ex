@@ -48,6 +48,7 @@ defmodule LogisticMapNif do
 	  key = keywords[:key]
 	  function = keywords[:function]
 	  is_map_calc = keywords[:is_map_calc]
+    put_env(key, 1)
 		value = 1..number
 		|> Enum.map(fn _ -> calibration(key, function, is_map_calc) end)
 		|> Enum.min
@@ -57,7 +58,8 @@ defmodule LogisticMapNif do
   def init do
   	[[key: "LogisticMapNif_map_calc_list", function: fn x -> map_calc_list(x, 10, 61, 22) end, is_map_calc: true],
   	 [key: "LogisticMapNif_map_calc_binary", function: fn x -> x |> Enum.reduce("", fn (x, acc) -> acc<><<x>> end) |> map_calc_binary(10, 61, 22) end, is_map_calc: true],
-  	 [key: "LogisticMapNif_map_calc_binary_to_binary", function: fn x -> x |> to_binary |> map_calc_binary(10, 61, 22) end, is_map_calc: true]]
+  	 [key: "LogisticMapNif_map_calc_binary_to_binary", function: fn x -> x |> to_binary |> map_calc_binary(10, 61, 22) end, is_map_calc: true],
+     [key: "LogisticMapNif_call_ocl", function: fn x -> call_ocl(x, 61, 22) end, is_map_calc: true]]
   	|> Enum.map(& min_calibration(&1))
   	|> IO.puts
   end
