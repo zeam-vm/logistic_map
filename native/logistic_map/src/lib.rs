@@ -3,6 +3,7 @@
 #[macro_use] extern crate lazy_static;
 
 #[link(name="logimap", kind="static")]
+#[link(name="liberts", kind="static")]
 
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder, NifError};
 use rustler::types::list::NifListIterator;
@@ -41,6 +42,8 @@ fn add<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
     let y: i64 = try!(args[1].decode());
     Ok((unsafe{add_c(x, y)}).encode(env))
 }
+
+
 
 fn calc<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
     let x: i64 = try!(args[0].decode());

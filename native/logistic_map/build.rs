@@ -6,4 +6,5 @@ fn main() {
                 .include("src")
                 .include("/usr/local/lib/erlang/erts-9.2/include/")
                 .compile("liblogimap.a");
+    println!("cargo:libdir=/usr/local/lib/erlang/erts-9.2/lib/");
 }

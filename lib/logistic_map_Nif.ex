@@ -4,6 +4,8 @@ defmodule LogisticMapNif do
   # When your NIF is loaded, it will override this function.
   def add(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
 
+  def add_c(_x, _y), do: :erlang.nif_error(:nif_not_loaded)
+
   def calc(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
 
   def map_calc_list(_list, _num, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
