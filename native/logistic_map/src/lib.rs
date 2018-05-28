@@ -3,7 +3,6 @@
 #[macro_use] extern crate lazy_static;
 
 extern crate ocl;
-extern crate ocl_extras;
 
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder, NifError};
 use rustler::types::list::NifListIterator;
@@ -105,7 +104,7 @@ fn trivial(x: Vec<i64>, p: i64, mu: i64) -> ocl::Result<(Vec<i64>)> {
 
     let pro_que = ProQue::builder()
         .src(src)
-        .dims(1 << 20)
+        .dims(x.len())
         .build().expect("Build ProQue");
 
     let source_buffer = Buffer::builder()
@@ -115,30 +114,26 @@ fn trivial(x: Vec<i64>, p: i64, mu: i64) -> ocl::Result<(Vec<i64>)> {
         .copy_host_slice(&x)
         .build()?;
 
-    let result_buffer: Buffer<i64> = pro_que.create_buffer()?;
-    let mut vec_result = vec![0; result_buffer.len()];
+    let result_buffer: Buffer<i64> = Buffer::builder()
+        .queue(pro_que.queue().clone())
+        .flags(MemFlags::new().read_write())
+        .len(x.len())
+        .build()?;
 
     let kernel = pro_que.kernel_builder("calc")
-        .arg(None::<&Buffer<i64>>)
-        .arg_named("result", None::<&Buffer<i64>>)
+        .arg(&source_buffer)
+        .arg(&result_buffer)
         .arg(p)
         .arg(mu)
         .build()?;
 
-
-    kernel.set_arg(0, Some(&source_buffer))?;
-    kernel.set_arg("result", &result_buffer)?;
-    kernel.set_arg(2, &p)?;
-    kernel.set_arg(3, &mu)?;
-
     unsafe { kernel.enq()?; }
 
-
-    println!("The value at index[{}] is now '{}'!", 2007, vec_result[2007]);
-
+    let mut vec_result = vec![0; result_buffer.len()];
+    println!("The value at index[{}] is now '{}'!", 0, x[0]);
     result_buffer.read(&mut vec_result).enq()?;
 
-    println!("The value at index[{}] is now '{}'!", 2007, vec_result[2007]);
+    println!("The value at index[{}] is now '{}'!", 0, vec_result[0]);
     Ok(vec_result)
 }
 
