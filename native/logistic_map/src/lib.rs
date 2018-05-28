@@ -98,7 +98,18 @@ fn trivial(x: Vec<i64>, p: i64, mu: i64) -> ocl::Result<(Vec<i64>)> {
     let src = r#"
         __kernel void calc(__global long* input, __global long* output, long p, long mu) {
             size_t i = get_global_id(0);
-            output[i] = input[i] + 1L;
+            long x = input[i];
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            x = mu * x * (x + 1) % p;
+            output[i] = x;
         }
     "#;
 
@@ -130,10 +141,7 @@ fn trivial(x: Vec<i64>, p: i64, mu: i64) -> ocl::Result<(Vec<i64>)> {
     unsafe { kernel.enq()?; }
 
     let mut vec_result = vec![0; result_buffer.len()];
-    println!("The value at index[{}] is now '{}'!", 0, x[0]);
     result_buffer.read(&mut vec_result).enq()?;
-
-    println!("The value at index[{}] is now '{}'!", 0, vec_result[0]);
     Ok(vec_result)
 }
 
