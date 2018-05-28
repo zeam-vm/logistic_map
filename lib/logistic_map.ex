@@ -14,11 +14,11 @@ defmodule LogisticMap do
 
   ## Examples
 
-      iex> LogisticMap.call_ocl
-      :ok
+      iex> 1..3 |> LogisticMap.call_ocl(61, 22)
+      [28, 25, 37]
   """
-  def call_ocl do
-    LogisticMapNif.call_ocl
+  def call_ocl(x, p, mu) do
+    LogisticMapNif.call_ocl(x |> Enum.to_list, p, mu)
   end
 
 

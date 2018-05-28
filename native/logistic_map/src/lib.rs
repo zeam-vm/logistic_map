@@ -3,6 +3,7 @@
 #[macro_use] extern crate lazy_static;
 
 extern crate ocl;
+extern crate ocl_extras;
 
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder, NifError};
 use rustler::types::list::NifListIterator;
@@ -11,7 +12,7 @@ use std::mem;
 use std::slice;
 use std::str;
 
-use ocl::ProQue;
+use ocl::{ProQue, Buffer, MemFlags};
 
 mod atoms {
     rustler_atoms! {
@@ -28,7 +29,7 @@ rustler_export_nifs! {
      ("map_calc_list", 4, map_calc_list),
      ("to_binary", 1, to_binary),
      ("map_calc_binary", 4, map_calc_binary),
-     ("call_ocl", 0, call_ocl)],
+     ("call_ocl", 3, call_ocl)],
     None
 }
 
@@ -94,35 +95,70 @@ fn map_calc_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTe
     Ok(res.encode(env))
 }
 
-fn trivial() -> ocl::Result<()> {
+fn trivial(x: Vec<i64>, p: i64, mu: i64) -> ocl::Result<(Vec<i64>)> {
     let src = r#"
-        __kernel void add(__global long* buffer, long scalar) {
-            buffer[get_global_id(0)] += scalar;
+        __kernel void calc(__global long* input, __global long* output, long p, long mu) {
+            size_t i = get_global_id(0);
+            output[i] = input[i] + 1L;
         }
     "#;
 
     let pro_que = ProQue::builder()
         .src(src)
         .dims(1 << 20)
+        .build().expect("Build ProQue");
+
+    let source_buffer = Buffer::builder()
+        .queue(pro_que.queue().clone())
+        .flags(MemFlags::new().read_write())
+        .len(x.len())
+        .copy_host_slice(&x)
         .build()?;
 
-    let buffer = pro_que.create_buffer::<i64>()?;
+    let result_buffer: Buffer<i64> = pro_que.create_buffer()?;
+    let mut vec_result = vec![0; result_buffer.len()];
 
-    let kernel = pro_que.kernel_builder("add")
-        .arg(&buffer)
-        .arg(10i64)
+    let kernel = pro_que.kernel_builder("calc")
+        .arg(None::<&Buffer<i64>>)
+        .arg_named("result", None::<&Buffer<i64>>)
+        .arg(p)
+        .arg(mu)
         .build()?;
+
+
+    kernel.set_arg(0, Some(&source_buffer))?;
+    kernel.set_arg("result", &result_buffer)?;
+    kernel.set_arg(2, &p)?;
+    kernel.set_arg(3, &mu)?;
 
     unsafe { kernel.enq()?; }
 
-    let mut vec = vec![0i64; buffer.len()];
-    buffer.read(&mut vec).enq()?;
 
-    println!("The value at index[{}] is now '{}'!", 200007, vec[200007]);
-    Ok(())
+    println!("The value at index[{}] is now '{}'!", 2007, vec_result[2007]);
+
+    result_buffer.read(&mut vec_result).enq()?;
+
+    println!("The value at index[{}] is now '{}'!", 2007, vec_result[2007]);
+    Ok(vec_result)
 }
 
-fn call_ocl<'a>(env: NifEnv<'a>, _args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let _res = trivial();
-    Ok((atoms::ok()).encode(env))
+fn call_ocl<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+    let iter: NifListIterator = try!(args[0].decode());
+    let p: i64 = try!(args[1].decode());
+    let mu: i64 = try!(args[2].decode());
+
+    let res: Result<Vec<i64>, NifError> = iter
+        .map(|x| x.decode::<i64>())
+        .collect();
+
+    match res {
+        Ok(result) => {
+            let r1: ocl::Result<(Vec<i64>)> = trivial(result, p, mu);
+            match r1 {
+               Ok(r2) => Ok(r2.encode(env)),
+               Err(_) => Err(NifError::BadArg),
+            }
+        },
+        Err(err) => Err(err),
+    }
 }
