@@ -2,7 +2,7 @@ defmodule LogisticMapNif do
   use Rustler, otp_app: :logistic_map, crate: :logistic_map
 
   # When your NIF is loaded, it will override this function.
-  def call_ocl, do: :erlang.nif_error(:nif_not_loaded)
+  def call_ocl(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
 
   def calc(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
 
