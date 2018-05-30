@@ -29,6 +29,7 @@ rustler_export_nifs! {
      ("map_calc_list", 4, map_calc_list),
      ("to_binary", 1, to_binary),
      ("map_calc_binary", 4, map_calc_binary),
+     ("call_empty", 3, call_empty),
 //     ("call_ocl", 3, call_ocl, NifScheduleFlags::DirtyCpu)],
      ("call_ocl", 3, call_ocl)],
     None
@@ -164,6 +165,21 @@ fn call_ocl<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>>
                Err(_) => Err(NifError::BadArg),
             }
         },
+        Err(err) => Err(err),
+    }
+}
+
+fn call_empty<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+    let iter: NifListIterator = try!(args[0].decode());
+    let _p: i64 = try!(args[1].decode());
+    let _mu: i64 = try!(args[2].decode());
+
+    let res: Result<Vec<i64>, NifError> = iter
+        .map(|x| x.decode::<i64>())
+        .collect();
+
+    match res {
+        Ok(result) => Ok(result.iter().map(|&x| x).collect::<Vec<i64>>().encode(env)),
         Err(err) => Err(err),
     }
 }
