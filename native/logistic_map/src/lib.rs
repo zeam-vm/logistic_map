@@ -2,9 +2,9 @@
 // #[macro_use] extern crate rustler_codegen;
 #[macro_use] extern crate lazy_static;
 
-use rustler::{NifEnv, NifTerm, NifResult, NifEncoder, NifError};
-use rustler::types::list::NifListIterator;
-use rustler::types::binary::{ NifBinary };
+use rustler::{Env, Term, NifResult, Encoder, Error};
+use rustler::types::list::ListIterator;
+use rustler::types::binary::Binary;
 use std::mem;
 use std::slice;
 use std::str;
@@ -27,7 +27,7 @@ rustler_export_nifs! {
     None
 }
 
-fn calc<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
+fn calc<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
     let x: i64 = try!(args[0].decode());
     let p: i64 = try!(args[1].decode());
     let mu: i64 = try!(args[2].decode());
@@ -43,13 +43,13 @@ fn loop_calc(num: i64, init: i64, p: i64, mu: i64) -> i64 {
     x
 }
 
-fn map_calc_list<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let iter: NifListIterator = try!(args[0].decode());
+fn map_calc_list<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
+    let iter: ListIterator = try!(args[0].decode());
     let num: i64 = try!(args[1].decode());
     let p: i64 = try!(args[2].decode());
     let mu: i64 = try!(args[3].decode());
 
-    let res: Result<Vec<i64>, NifError> = iter
+    let res: Result<Vec<i64>, Error> = iter
         .map(|x| x.decode::<i64>())
         .collect();
 
@@ -59,9 +59,9 @@ fn map_calc_list<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm
     }
 }
 
-fn to_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let iter: NifListIterator = try!(args[0].decode());
-    let res: Result<Vec<i64>, NifError> = iter
+fn to_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
+    let iter: ListIterator = try!(args[0].decode());
+    let res: Result<Vec<i64>, Error> = iter
         .map(|x| x.decode::<i64>())
         .collect();
     match res {
@@ -79,8 +79,8 @@ fn to_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>
     }
 }
 
-fn map_calc_binary<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let in_binary : NifBinary = args[0].decode()?;
+fn map_calc_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
+    let in_binary : Binary = args[0].decode()?;
     let num: i64 = try!(args[1].decode());
     let p: i64 = try!(args[2].decode());
     let mu: i64 = try!(args[3].decode());
