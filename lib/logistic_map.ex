@@ -293,14 +293,13 @@ defmodule LogisticMap do
   end
   def mapCalc8(list, num, p, mu, stages) when stages > 1 do
     window = Flow.Window.global
-    |> Flow.Window.trigger_every(LogisticMapNif.get_env("LogisticMapNif_map_calc_list"), :reset)
+    |> Flow.Window.trigger_every(LogisticMapNif.get_env("LogisticMapNif_map_calc_list"))
 
     list
     |> Flow.from_enumerable
     |> Flow.partition(window: window, stages: stages)
     |> Flow.reduce(fn -> [] end, fn e, acc -> [e | acc] end)
-    |> Flow.map_state(& &1 |> LogisticMapNif.map_calc_list(num, p, mu))
-    |> Flow.emit(:state)
+    |> Flow.on_trigger(fn acc -> {(acc |> LogisticMapNif.map_calc_list(num, p, mu)), []} end)
     |> Enum.to_list
   end
 
