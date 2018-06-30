@@ -4,7 +4,7 @@ defmodule LogisticMap.MixProject do
   def project do
     [
       app: :logistic_map,
-      version: "1.1.0",
+      version: "1.1.1",
       elixir: "~> 1.6",
       compilers: [:rustler] ++ Mix.compilers,
       rustler_crates: rustler_crates(),
@@ -37,9 +37,9 @@ defmodule LogisticMap.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:flow, "~> 0.12"},
+      {:flow, "~> 0.14.0"},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:rustler, "~> 0.16.0"}
+      {:rustler, "~> 0.17.1"}
     ]
   end
 end
