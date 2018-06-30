@@ -37,9 +37,9 @@ defmodule LogisticMap.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:flow, "~> 0.12"},
+      {:flow, "~> 0.14.0"},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:rustler, "~> 0.16.0"}
+      {:rustler, "~> 0.17.1"}
     ]
   end
 end
