@@ -8,6 +8,7 @@ use rustler::{Env, Term, NifResult, Encoder, Error};
 use rustler::env::{OwnedEnv, SavedTerm};
 use rustler::types::list::ListIterator;
 use rustler::types::binary::Binary;
+use rustler::types::tuple::make_tuple;
 use std::mem;
 use std::slice;
 use std::str;
@@ -96,14 +97,14 @@ fn map_calc_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
 fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
     let pid = env.pid();
     let mut my_env = OwnedEnv::new();
-    let num: i64 = try!(args[1].decode());
-    let p: i64 = try!(args[2].decode());
-    let mu: i64 = try!(args[3].decode());
     let _stages: i64 = try!(args[4].decode());
 
     let saved_list = my_env.run(|env| -> NifResult<SavedTerm> {
         let list_arg = args[0].in_env(env);
-        Ok(my_env.save(list_arg))
+        let num      = args[1].in_env(env);
+        let p        = args[2].in_env(env);
+        let mu       = args[3].in_env(env);
+        Ok(my_env.save(make_tuple(env, &[list_arg, num, p, mu])))
     })?;
 
     //let pool = scoped_pool::Pool::new(stages as usize);
@@ -111,17 +112,19 @@ fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
     std::thread::spawn(move || {
         my_env.send_and_clear(&pid, |env| {
             let result: NifResult<Term> = (|| {
-                let list_arg = saved_list.load(env);
-                let iter: ListIterator = try!(list_arg.decode());
+                let tuple = saved_list.load(env).decode::<(Term, i64, i64, i64)>()?;
+                        let num = tuple.1;
+                        let p = tuple.2;
+                        let mu = tuple.3;
+                        let iter: ListIterator = try!(tuple.0.decode());
+                        let res: Result<Vec<i64>, Error> = iter
+                            .map(|x| x.decode::<i64>())
+                            .collect();
 
-                let res: Result<Vec<i64>, Error> = iter
-                        .map(|x| x.decode::<i64>())
-                        .collect();
-
-                match res {
-                    Ok(result) => Ok(result.iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
-                    Err(err) => Err(err)
-                }
+                        match res {
+                            Ok(result) => Ok(result.iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
+                            Err(err) => Err(err)
+                        }
             })();
             match result {
                 Err(_err) => env.error_tuple("test failed".encode(env)),

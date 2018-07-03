@@ -312,7 +312,7 @@ defmodule LogisticMap do
       [28, 25, 37]
   """
   def map_calc_t1(list, num, p, mu, stages) do
-  	LogisticMapNif.map_calc_t1(list, num, p, mu, stages)
+  	LogisticMapNif.map_calc_t1(list |> Enum.to_list, num, p, mu, stages)
   	receive do
   		list -> list
   	end
