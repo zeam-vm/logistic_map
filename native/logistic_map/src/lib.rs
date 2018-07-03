@@ -8,7 +8,6 @@ use rustler::{Env, Term, NifResult, Encoder, Error};
 use rustler::env::{OwnedEnv, SavedTerm};
 use rustler::types::list::ListIterator;
 use rustler::types::binary::Binary;
-use rustler::types::tuple::make_tuple;
 use std::mem;
 use std::slice;
 use std::str;
@@ -97,28 +96,23 @@ fn map_calc_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
 fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
     let pid = env.pid();
     let mut my_env = OwnedEnv::new();
-    let stages: i64 = try!(args[4].decode());
+    let num: i64 = try!(args[1].decode());
+    let p: i64 = try!(args[2].decode());
+    let mu: i64 = try!(args[3].decode());
+    let _stages: i64 = try!(args[4].decode());
 
-    let saved_reversed_list = my_env.run(|env| -> NifResult<SavedTerm> {
+    let saved_list = my_env.run(|env| -> NifResult<SavedTerm> {
         let list_arg = args[0].in_env(env);
-        let num: Term = args[1].in_env(env);
-        let p: Term = args[2].in_env(env);
-        let mu: Term = args[3].in_env(env);
-
-        Ok(my_env.save(make_tuple(env, &[list_arg, num, p, mu])))
+        Ok(my_env.save(list_arg))
     })?;
 
-    let pool = scoped_pool::Pool::new(stages as usize);
+    //let pool = scoped_pool::Pool::new(stages as usize);
 
-    pool.scoped(move |_scoped| {
+    std::thread::spawn(move || {
         my_env.send_and_clear(&pid, |env| {
             let result: NifResult<Term> = (|| {
-                let _res_term = saved_reversed_list.load(env);
-                let tuple = (args[0]).decode::<(ListIterator, i64, i64, i64)>()?;
-                let iter: ListIterator = tuple.0;
-                let num = tuple.1;
-                let p = tuple.2;
-                let mu = tuple.3;
+                let list_arg = saved_list.load(env);
+                let iter: ListIterator = try!(list_arg.decode());
 
                 let res: Result<Vec<i64>, Error> = iter
                         .map(|x| x.decode::<i64>())
