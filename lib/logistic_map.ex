@@ -303,6 +303,20 @@ defmodule LogisticMap do
     |> Enum.to_list
   end
 
+  @doc """
+  Flow.map calc logistic map
+
+  ## Examples
+
+      iex> 1..3 |> LogisticMap.map_calc_t1(10, 61, 22, 1)
+      [28, 25, 37]
+  """
+  def map_calc_t1(list, num, p, mu, stages) do
+  	LogisticMapNif.map_calc_t1(list, num, p, mu, stages)
+  	receive do
+  		list -> list
+  	end
+  end
 
   @doc """
   Benchmark
@@ -405,6 +419,18 @@ defmodule LogisticMap do
   end
 
   @doc """
+  Benchmark
+  """
+  def benchmark_t1(stages) do
+    IO.puts "stages: #{stages}"
+    IO.puts (
+      :timer.tc(fn -> map_calc_t1(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
+      |> elem(0)
+      |> Kernel./(1000000)
+    )
+  end
+
+  @doc """
   Benchmarks
   """
   def benchmarks1() do
@@ -479,6 +505,15 @@ defmodule LogisticMap do
     |> Enum.reduce(0, fn _lst, acc -> acc end)
   end
 
+  @doc """
+  Benchmarks
+  """
+  def benchmarks_t1() do
+    [1]
+    |> Enum.map(& benchmark_t1(&1))
+    |> Enum.reduce(0, fn _lst, acc -> acc end)
+  end
+
   def allbenchmarks() do
     LogisticMapNif.init
 
@@ -490,7 +525,8 @@ defmodule LogisticMap do
      {&benchmarks5/0, "benchmarks5: Rustler loop, passing by list"},
      {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"},
      {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"},
-     {&benchmarks8/0, "benchmarks8: Rustler loop, passing by list, with Window"}]
+     {&benchmarks8/0, "benchmarks8: Rustler loop, passing by list, with Window"},
+     {&benchmarks_t1/0, "benchmarks_t1: asynchronous multi-threaded Rustler, passing by list"}]
     |> Enum.map(fn (x) ->
       IO.puts elem(x, 1)
       elem(x, 0).()
