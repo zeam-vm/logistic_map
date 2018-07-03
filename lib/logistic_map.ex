@@ -311,11 +311,21 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.map_calc_t1(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def map_calc_t1(list, num, p, mu, stages) do
-  	LogisticMapNif.map_calc_t1(list |> Enum.to_list, num, p, mu, stages)
+  def map_calc_t1(list, num, p, mu, stages) when stages <= 1 do
+  	list
+  	|> Enum.to_list
+  	|> LogisticMapNif.map_calc_t1(num, p, mu)
   	receive do
   		list -> list
   	end
+  end
+  def map_calc_t1(list, num, p, mu, stages) when stages > 1 do
+    chunk_size = div(Enum.count(list) - 1, stages) + 1
+    list
+    |> Stream.chunk_every(chunk_size)
+    |> Flow.from_enumerable(stages: stages)
+    |> Flow.map(& &1 |> LogisticMapNif.map_calc_t1(num, p, mu))
+    |> Enum.to_list
   end
 
   @doc """
@@ -509,7 +519,7 @@ defmodule LogisticMap do
   Benchmarks
   """
   def benchmarks_t1() do
-    [1]
+    [1, 2, 4, 8, 16, 32, 64, 128]
     |> Enum.map(& benchmark_t1(&1))
     |> Enum.reduce(0, fn _lst, acc -> acc end)
   end

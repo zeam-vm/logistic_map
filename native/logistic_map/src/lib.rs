@@ -28,7 +28,7 @@ rustler_export_nifs! {
      ("map_calc_list", 4, map_calc_list),
      ("to_binary", 1, to_binary),
      ("map_calc_binary", 4, map_calc_binary),
-     ("map_calc_t1", 5, map_calc_t1)],
+     ("map_calc_t1", 4, map_calc_t1)],
     None
 }
 
@@ -97,7 +97,6 @@ fn map_calc_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
 fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
     let pid = env.pid();
     let mut my_env = OwnedEnv::new();
-    let _stages: i64 = try!(args[4].decode());
 
     let saved_list = my_env.run(|env| -> NifResult<SavedTerm> {
         let list_arg = args[0].in_env(env);
@@ -106,8 +105,6 @@ fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
         let mu       = args[3].in_env(env);
         Ok(my_env.save(make_tuple(env, &[list_arg, num, p, mu])))
     })?;
-
-    //let pool = scoped_pool::Pool::new(stages as usize);
 
     std::thread::spawn(move || {
         my_env.send_and_clear(&pid, |env| {

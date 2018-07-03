@@ -12,7 +12,7 @@ defmodule LogisticMapNif do
   def map_calc_binary(_binary, _num, _p, _mu), do:
   :erlang.nif_error(:nif_not_loaded)
 
-  def map_calc_t1(_list, _num, _p, _mu, _stages), do:
+  def map_calc_t1(_list, _num, _p, _mu), do:
   :erlang.nif_error(:nif_not_loaded)
 
   def floor(value, precision \\ 1) do
