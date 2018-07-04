@@ -3,14 +3,18 @@
 #[macro_use] extern crate lazy_static;
 
 extern crate ocl;
+extern crate rayon;
 
 use rustler::{Env, Term, NifResult, Encoder, Error};
+use rustler::env::{OwnedEnv, SavedTerm};
 use rustler::types::list::ListIterator;
 use rustler::types::binary::Binary;
 
+use rustler::types::tuple::make_tuple;
 use std::mem;
 use std::slice;
 use std::str;
+use rayon::prelude::*;
 
 use ocl::{ProQue, Buffer, MemFlags};
 
@@ -31,7 +35,8 @@ rustler_export_nifs! {
      ("map_calc_binary", 4, map_calc_binary),
      ("call_empty", 3, call_empty),
 //     ("call_ocl", 3, call_ocl, NifScheduleFlags::DirtyCpu)],
-     ("call_ocl", 3, call_ocl)],
+     ("call_ocl", 3, call_ocl),
+     ("map_calc_t1", 4, map_calc_t1)],
     None
 }
 
@@ -182,4 +187,42 @@ fn call_empty<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
         Ok(result) => Ok(result.iter().map(|&x| x).collect::<Vec<i64>>().encode(env)),
         Err(err) => Err(err),
     }
+}
+
+fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
+    let pid = env.pid();
+    let mut my_env = OwnedEnv::new();
+
+    let saved_list = my_env.run(|env| -> NifResult<SavedTerm> {
+        let list_arg = args[0].in_env(env);
+        let num      = args[1].in_env(env);
+        let p        = args[2].in_env(env);
+        let mu       = args[3].in_env(env);
+        Ok(my_env.save(make_tuple(env, &[list_arg, num, p, mu])))
+    })?;
+
+    std::thread::spawn(move || {
+        my_env.send_and_clear(&pid, |env| {
+            let result: NifResult<Term> = (|| {
+                let tuple = saved_list.load(env).decode::<(Term, i64, i64, i64)>()?;
+                let iter: ListIterator = try!(tuple.0.decode());
+                let num = tuple.1;
+                let p = tuple.2;
+                let mu = tuple.3;
+                let res: Result<Vec<i64>, Error> = iter
+                    .map(|x| x.decode::<i64>())
+                    .collect();
+
+                match res {
+                    Ok(result) => Ok(result.par_iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
+                    Err(err) => Err(err)
+                }
+            })();
+            match result {
+                Err(_err) => env.error_tuple("test failed".encode(env)),
+                Ok(term) => term
+            }
+        });
+    });
+    Ok(atoms::ok().to_term(env))
 }

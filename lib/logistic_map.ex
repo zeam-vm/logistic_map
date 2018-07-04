@@ -304,6 +304,7 @@ defmodule LogisticMap do
   end
 
   @doc """
+  Flow.map calc logistic map
 
   ## Examples
 
@@ -332,6 +333,38 @@ defmodule LogisticMap do
     |> LogisticMapNif.call_empty(p, mu)
   end
 
+  @doc """
+  Flow.map calc logistic map
+
+  ## Examples
+
+      iex> 1..3 |> LogisticMap.map_calc_t1(10, 61, 22, 1)
+      [28, 25, 37]
+  """
+  def map_calc_t1(list, num, p, mu, stages) when stages <= 1 do
+  	list
+  	|> Enum.to_list
+  	|> LogisticMapNif.map_calc_t1(num, p, mu)
+  	receive do
+  		l -> l
+  	end
+  end
+  def map_calc_t1(list, num, p, mu, stages) when stages > 1 do
+    chunk_size = div(Enum.count(list) - 1, stages) + 1
+    list
+    |> Stream.chunk_every(chunk_size)
+    |> Stream.map(fn e ->
+    	Task.async(fn ->
+    		e
+    		|> LogisticMapNif.map_calc_t1(num, p, mu)
+    		receive do
+    			l -> l
+    		end
+    	end)
+    end)
+    |> Enum.to_list
+    |> List.flatten
+  end
 
   @doc """
   Benchmark
@@ -445,6 +478,18 @@ defmodule LogisticMap do
     )
   end
 
+  @doc """
+  Benchmark
+  """
+
+  def benchmark_t1(stages) do
+    IO.puts "stages: #{stages}"
+    IO.puts (
+      :timer.tc(fn -> map_calc_t1(1..@logistic_map_size, @default_loop, @default_prime, @default_mu, stages) end)
+      |> elem(0)
+      |> Kernel./(1000000)
+    )
+  end
 
   @doc """
   Benchmark
@@ -457,6 +502,7 @@ defmodule LogisticMap do
       |> Kernel./(1000000)
     )
   end
+
   @doc """
   Benchmarks
   """
@@ -532,7 +578,6 @@ defmodule LogisticMap do
     |> Enum.reduce(0, fn _lst, acc -> acc end)
   end
 
-
   @doc """
   Benchmarks
   """
@@ -553,6 +598,15 @@ defmodule LogisticMap do
   end
 
 
+  @doc """
+  Benchmarks
+  """
+  def benchmarks_t1() do
+    [1]
+    |> Enum.map(& benchmark_t1(&1))
+    |> Enum.reduce(0, fn _lst, acc -> acc end)
+  end
+
   def allbenchmarks() do
     LogisticMapNif.init
 
@@ -566,7 +620,8 @@ defmodule LogisticMap do
      {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"},
      {&benchmarks8/0, "benchmarks8: Rustler loop, passing by list, with Window"},
      {&benchmarks9/0, "benchmarks9: OpenCL(GPU)"}, 
-     {&benchmarks_empty/0, "benchmarks_empty: Ruslter empty"}]
+     {&benchmarks_empty/0, "benchmarks_empty: Ruslter empty"},
+     {&benchmarks_t1/0, "benchmarks_t1: asynchronous multi-threaded Rustler, passing by list"}]
     |> Enum.map(fn (x) ->
       IO.puts elem(x, 1)
       elem(x, 0).()
