@@ -36,6 +36,7 @@ rustler_export_nifs! {
      ("call_empty", 3, call_empty),
 //     ("call_ocl", 3, call_ocl, NifScheduleFlags::DirtyCpu)],
      ("call_ocl", 3, call_ocl),
+     ("call_ocl2", 3, call_ocl2),
      ("map_calc_t1", 4, map_calc_t1)],
     None
 }
@@ -172,6 +173,48 @@ fn call_ocl<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
         },
         Err(err) => Err(err),
     }
+}
+
+fn call_ocl2<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
+    let pid = env.pid();
+    let mut my_env = OwnedEnv::new();
+
+    let saved_list = my_env.run(|env| -> NifResult<SavedTerm> {
+        let list_arg = args[0].in_env(env);
+        let p        = args[1].in_env(env);
+        let mu       = args[2].in_env(env);
+        Ok(my_env.save(make_tuple(env, &[list_arg, p, mu])))
+    })?;
+
+    std::thread::spawn(move || {
+        my_env.send_and_clear(&pid, |env| {
+            let result: NifResult<Term> = (|| {
+                let tuple = saved_list.load(env).decode::<(Term, i64, i64)>()?;
+                let iter: ListIterator = try!(tuple.0.decode());
+                let p = tuple.1;
+                let mu = tuple.2;
+                let res: Result<Vec<i64>, Error> = iter
+                    .map(|x| x.decode::<i64>())
+                    .collect();
+
+                match res {
+                    Ok(result) => {
+                        let r1: ocl::Result<(Vec<i64>)> = trivial(result, p, mu);
+                        match r1 {
+                            Ok(r2) => Ok(r2.encode(env)),
+                            Err(_) => Err(Error::BadArg),
+                        }
+                    },
+                    Err(err) => Err(err)
+                }
+            })();
+            match result {
+                Err(_err) => env.error_tuple("test failed".encode(env)),
+                Ok(term) => term
+            }
+        });
+    });
+    Ok(atoms::ok().to_term(env))
 }
 
 fn call_empty<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {

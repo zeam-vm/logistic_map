@@ -4,6 +4,8 @@ defmodule LogisticMapNif do
   # When your NIF is loaded, it will override this function.
   def call_ocl(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
 
+  def call_ocl2(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
+
   def call_empty(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
 
   def calc(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
