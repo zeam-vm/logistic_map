@@ -527,7 +527,7 @@ defmodule LogisticMap do
   Benchmarks
   """
   def benchmarks_t1() do
-    [1, 2, 4, 8, 16, 32, 64, 128]
+    [1]
     |> Enum.map(& benchmark_t1(&1))
     |> Enum.reduce(0, fn _lst, acc -> acc end)
   end
