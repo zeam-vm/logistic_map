@@ -2,7 +2,7 @@
 // #[macro_use] extern crate rustler_codegen;
 #[macro_use] extern crate lazy_static;
 
-extern crate scoped_pool;
+extern crate rayon;
 
 use rustler::{Env, Term, NifResult, Encoder, Error};
 use rustler::env::{OwnedEnv, SavedTerm};
@@ -12,6 +12,7 @@ use rustler::types::tuple::make_tuple;
 use std::mem;
 use std::slice;
 use std::str;
+use rayon::prelude::*;
 
 mod atoms {
     rustler_atoms! {
@@ -119,7 +120,7 @@ fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
                     .collect();
 
                 match res {
-                    Ok(result) => Ok(result.iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
+                    Ok(result) => Ok(result.par_iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
                     Err(err) => Err(err)
                 }
             })();
