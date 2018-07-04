@@ -3,6 +3,7 @@
 #[macro_use] extern crate lazy_static;
 
 extern crate rayon;
+extern crate scoped_pool;
 
 use rustler::{Env, Term, NifResult, Encoder, Error};
 use rustler::env::{OwnedEnv, SavedTerm};
@@ -31,6 +32,10 @@ rustler_export_nifs! {
      ("map_calc_binary", 4, map_calc_binary),
      ("map_calc_t1", 4, map_calc_t1)],
     None
+}
+
+lazy_static! {
+    static ref POOL:scoped_pool::Pool = scoped_pool::Pool::new(8);
 }
 
 fn calc<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
@@ -107,7 +112,7 @@ fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
         Ok(my_env.save(make_tuple(env, &[list_arg, num, p, mu])))
     })?;
 
-    std::thread::spawn(move || {
+    POOL.spawn(move || {
         my_env.send_and_clear(&pid, |env| {
             let result: NifResult<Term> = (|| {
                 let tuple = saved_list.load(env).decode::<(Term, i64, i64, i64)>()?;
