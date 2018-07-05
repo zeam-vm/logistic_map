@@ -65,7 +65,7 @@ defmodule LogisticMapNif do
 	end
 
   def init do
-    init_nif
+    init_nif()
   	[[key: "LogisticMapNif_map_calc_list", function: fn x -> map_calc_list(x, 10, 61, 22) end, is_map_calc: true],
   	 [key: "LogisticMapNif_map_calc_binary", function: fn x -> x |> Enum.reduce("", fn (x, acc) -> acc<><<x>> end) |> map_calc_binary(10, 61, 22) end, is_map_calc: true],
   	 [key: "LogisticMapNif_map_calc_binary_to_binary", function: fn x -> x |> to_binary |> map_calc_binary(10, 61, 22) end, is_map_calc: true],
