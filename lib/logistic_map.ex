@@ -310,8 +310,6 @@ defmodule LogisticMap do
   def map_calc_g1(x, p, mu, _stages) do
     x
     |> LogisticMapNif.call_ocl(p, mu)
-#    |> Stream.chunk_every(100000000000)
-#    |> Enum.map(& &1 |> LogisticMapNif.call_ocl(p, mu))
   end
 
 
@@ -352,28 +350,12 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.map_calc_t1(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def map_calc_t1(list, num, p, mu, stages) when stages <= 1 do
+  def map_calc_t1(list, num, p, mu, stages) do
   	list
   	|> LogisticMapNif.map_calc_t1(num, p, mu)
   	receive do
   		l -> l
   	end
-  end
-  def map_calc_t1(list, num, p, mu, stages) when stages > 1 do
-    chunk_size = div(Enum.count(list) - 1, stages) + 1
-    list
-    |> Stream.chunk_every(chunk_size)
-    |> Stream.map(fn e ->
-    	Task.async(fn ->
-    		e
-    		|> LogisticMapNif.map_calc_t1(num, p, mu)
-    		receive do
-    			l -> l
-    		end
-    	end)
-    end)
-    |> Enum.to_list
-    |> List.flatten
   end
 
   @doc """
