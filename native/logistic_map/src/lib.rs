@@ -299,15 +299,11 @@ fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
         my_env.send_and_clear(&pid, |env| {
             let result: NifResult<Term> = (|| {
                 let tuple = saved_list.load(env).decode::<(Term, i64, i64, i64)>()?;
-                let iter: ListIterator = try!(tuple.0.decode());
                 let num = tuple.1;
                 let p = tuple.2;
                 let mu = tuple.3;
-                let res: Result<Vec<i64>, Error> = iter
-                    .map(|x| x.decode::<i64>())
-                    .collect();
 
-                match res {
+                match to_list(tuple.0) {
                     Ok(result) => Ok(result.par_iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
                     Err(err) => Err(err)
                 }
