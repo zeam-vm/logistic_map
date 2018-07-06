@@ -642,12 +642,12 @@ defmodule LogisticMap do
 
     [
      {&benchmarks1/0, "benchmarks1: pure Elixir(loop)"},
-     {&benchmarks2/0, "benchmarks2: pure Elixir(inlining outside of Flow.map)"},
+     # {&benchmarks2/0, "benchmarks2: pure Elixir(inlining outside of Flow.map)"},
      {&benchmarks3/0, "benchmarks3: pure Elixir(inlining inside of Flow.map)"},
-     {&benchmarks4/0, "benchmarks4: pure Elixir(loop: variation)"},
-     {&benchmarks5/0, "benchmarks5: Rustler loop, passing by list"},
-     {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"},
-     {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"},
+     # {&benchmarks4/0, "benchmarks4: pure Elixir(loop: variation)"},
+     # {&benchmarks5/0, "benchmarks5: Rustler loop, passing by list"},
+     # {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"},
+     # {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"},
      {&benchmarks8/0, "benchmarks8: Rustler loop, passing by list, with Window"},
      {&benchmarks_g1/0, "benchmarks_g1: OpenCL(GPU)"},
      {&benchmarks_g2/0, "benchmarks_g2: OpenCL(GPU) asynchronously"},
