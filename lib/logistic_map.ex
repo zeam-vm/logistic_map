@@ -192,7 +192,6 @@ defmodule LogisticMap do
   """
   def mapCalc5(list, num, p, mu, stages) when stages <= 1 do
     list
-    |> Enum.to_list
     |> LogisticMapNif.map_calc_list(num, p, mu)
   end
   def mapCalc5(list, num, p, mu, stages) when stages > 1 do
@@ -223,7 +222,6 @@ defmodule LogisticMap do
   """
   def mapCalc6(list, num, p, mu, stages) when stages <= 1 do
     list
-    |> Enum.to_list
     |> Enum.reduce("", fn x, acc -> acc<><<x>> end)
     |> LogisticMapNif.map_calc_binary(num, p, mu)
   end
@@ -256,7 +254,6 @@ defmodule LogisticMap do
   """
   def mapCalc7(list, num, p, mu, stages) when stages <= 1 do
     list
-    |> Enum.to_list
     |> LogisticMapNif.to_binary
     |> LogisticMapNif.map_calc_binary(num, p, mu)
   end
@@ -288,7 +285,6 @@ defmodule LogisticMap do
   """
   def mapCalc8(list, num, p, mu, stages) when stages <= 1 do
     list
-    |> Enum.to_list
     |> LogisticMapNif.map_calc_list(num, p, mu)
   end
   def mapCalc8(list, num, p, mu, stages) when stages > 1 do
@@ -313,7 +309,6 @@ defmodule LogisticMap do
   """
   def map_calc_g1(x, p, mu, _stages) do
     x
-    |> Enum.to_list
     |> LogisticMapNif.call_ocl(p, mu)
 #    |> Stream.chunk_every(100000000000)
 #    |> Enum.map(& &1 |> LogisticMapNif.call_ocl(p, mu))
@@ -330,7 +325,6 @@ defmodule LogisticMap do
   """
   def map_calc_g2(x, p, mu, _stages) do
   	x
-  	|> Enum.to_list
   	|> LogisticMapNif.call_ocl2(p, mu)
   	receive do
   		l -> l
@@ -347,7 +341,6 @@ defmodule LogisticMap do
   """
   def mapEmpty(x, p, mu, _stages) do
     x
-    |> Enum.to_list
     |> LogisticMapNif.call_empty(p, mu)
   end
 
@@ -361,7 +354,6 @@ defmodule LogisticMap do
   """
   def map_calc_t1(list, num, p, mu, stages) when stages <= 1 do
   	list
-  	|> Enum.to_list
   	|> LogisticMapNif.map_calc_t1(num, p, mu)
   	receive do
   		l -> l
@@ -657,8 +649,8 @@ defmodule LogisticMap do
      {&benchmarks6/0, "benchmarks6: Rustler loop, passing by binary created by Elixir"},
      {&benchmarks7/0, "benchmarks7: Rustler loop, passing by binary created by Rustler"},
      {&benchmarks8/0, "benchmarks8: Rustler loop, passing by list, with Window"},
-     {&benchmarks_g1/0, "benchmarks_g1: OpenCL(GPU)"}, 
-     {&benchmarks_g2/0, "benchmarks_g2: OpenCL(GPU) asynchronously"}, 
+     {&benchmarks_g1/0, "benchmarks_g1: OpenCL(GPU)"},
+     {&benchmarks_g2/0, "benchmarks_g2: OpenCL(GPU) asynchronously"},
      {&benchmarks_empty/0, "benchmarks_empty: Ruslter empty"},
      {&benchmarks_t1/0, "benchmarks_t1: asynchronous multi-threaded Rustler, passing by list"}]
     |> Enum.map(fn (x) ->

@@ -9,14 +9,17 @@ extern crate scoped_pool;
 use rustler::{Env, Term, NifResult, Encoder, Error};
 use rustler::env::{OwnedEnv, SavedTerm};
 use rustler::types::list::ListIterator;
+use rustler::types::map::MapIterator;
 use rustler::types::binary::Binary;
 
 use rustler::types::tuple::make_tuple;
 use std::mem;
 use std::slice;
 use std::str;
+use std::ops::Range;
+
 use rayon::prelude::*;
- 
+
 use ocl::{ProQue, Buffer, MemFlags};
 
 mod atoms {
@@ -50,9 +53,69 @@ lazy_static! {
 
 fn init_nif<'a>(env: Env<'a>, _args: &[Term<'a>]) -> NifResult<Term<'a>> {
     let _ = rayon::ThreadPoolBuilder::new().num_threads(32).build_global().unwrap();
-    Ok(atoms::ok().encode(env))        
+    Ok(atoms::ok().encode(env))
 }
 
+fn to_range(arg: Term) -> Range<i64> {
+    match arg.decode::<MapIterator>() {
+        Ok(iter) => {
+            let mut vec:Vec<(Term, Term)> = vec![];
+            for (key, value) in iter {
+                vec.push((key, value));
+            }
+            match vec[0].0.atom_to_string() {
+                Ok(struct_k) => {
+                    if struct_k == "__struct__" {
+                        match vec[0].1.atom_to_string() {
+                            Ok(struct_v) => {
+                                if struct_v == "Elixir.Range" {
+                                    match vec[1].1.decode::<i64>() {
+                                        Ok(first) => {
+                                            match vec[2].1.decode::<i64>() {
+                                                Ok(last) => {
+                                                    std::ops::Range {start: first, end: last + 1}
+                                                },
+                                                Err(_) => panic!("argument error"),
+                                            }
+                                        },
+                                        Err(_) => panic!("argument error"),
+                                    }
+                                } else {
+                                    panic!("argument error")
+                                }
+                            },
+                            Err(_) => panic!("argument error"),
+                        }
+                    } else {
+                        panic!("argument error")
+                    }
+                },
+                Err(_) => panic!("argument error"),
+            }
+        },
+        Err(_) => panic!("argument error"),
+    }
+}
+
+fn to_list(arg: Term) -> Result<Vec<i64>, Error> {
+    match arg.is_map() {
+        true => Ok(to_range(arg).collect::<Vec<i64>>()),
+        false => match arg.is_list() {
+            true => {
+                let iter: ListIterator = try!(arg.decode());
+                let res: Result<Vec<i64>, Error> = iter
+                    .map(|x| x.decode::<i64>())
+                    .collect();
+
+                match res {
+                    Ok(result) => Ok(result),
+                    Err(_) => Err(Error::BadArg)
+                }
+            },
+            false => Err(Error::BadArg)
+        },
+    }
+}
 
 fn calc<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
     let x: i64 = try!(args[0].decode());
@@ -71,27 +134,17 @@ fn loop_calc(num: i64, init: i64, p: i64, mu: i64) -> i64 {
 }
 
 fn map_calc_list<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
-    let iter: ListIterator = try!(args[0].decode());
     let num: i64 = try!(args[1].decode());
     let p: i64 = try!(args[2].decode());
     let mu: i64 = try!(args[3].decode());
-
-    let res: Result<Vec<i64>, Error> = iter
-        .map(|x| x.decode::<i64>())
-        .collect();
-
-    match res {
-        Ok(result) => Ok(result.iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
+    match to_list(args[0]) {
+        Ok(list) => Ok(list.iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
         Err(err) => Err(err),
     }
 }
 
 fn to_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
-    let iter: ListIterator = try!(args[0].decode());
-    let res: Result<Vec<i64>, Error> = iter
-        .map(|x| x.decode::<i64>())
-        .collect();
-    match res {
+    match to_list(args[0]) {
         Ok(result) => Ok(result.iter().map(|i| unsafe {
             let ip: *const i64 = i;
             let bp: *const u8 = ip as *const _;
@@ -168,15 +221,10 @@ fn trivial(x: Vec<i64>, p: i64, mu: i64) -> ocl::Result<(Vec<i64>)> {
 }
 
 fn call_ocl<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
-    let iter: ListIterator = try!(args[0].decode());
     let p: i64 = try!(args[1].decode());
     let mu: i64 = try!(args[2].decode());
 
-    let res: Result<Vec<i64>, Error> = iter
-        .map(|x| x.decode::<i64>())
-        .collect();
-
-    match res {
+    match to_list(args[0]) {
         Ok(result) => {
             let r1: ocl::Result<(Vec<i64>)> = trivial(result, p, mu);
             match r1 {
@@ -203,14 +251,9 @@ fn call_ocl2<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
         my_env.send_and_clear(&pid, |env| {
             let result: NifResult<Term> = (|| {
                 let tuple = saved_list.load(env).decode::<(Term, i64, i64)>()?;
-                let iter: ListIterator = try!(tuple.0.decode());
                 let p = tuple.1;
                 let mu = tuple.2;
-                let res: Result<Vec<i64>, Error> = iter
-                    .map(|x| x.decode::<i64>())
-                    .collect();
-
-                match res {
+                match to_list(tuple.0) {
                     Ok(result) => {
                         let r1: ocl::Result<(Vec<i64>)> = trivial(result, p, mu);
                         match r1 {
@@ -231,15 +274,10 @@ fn call_ocl2<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
 }
 
 fn call_empty<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
-    let iter: ListIterator = try!(args[0].decode());
     let _p: i64 = try!(args[1].decode());
     let _mu: i64 = try!(args[2].decode());
 
-    let res: Result<Vec<i64>, Error> = iter
-        .map(|x| x.decode::<i64>())
-        .collect();
-
-    match res {
+    match to_list(args[0]) {
         Ok(result) => Ok(result.iter().map(|&x| x).collect::<Vec<i64>>().encode(env)),
         Err(err) => Err(err),
     }
