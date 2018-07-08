@@ -350,7 +350,7 @@ defmodule LogisticMap do
       iex> 1..3 |> LogisticMap.map_calc_t1(10, 61, 22, 1)
       [28, 25, 37]
   """
-  def map_calc_t1(list, num, p, mu, stages) do
+  def map_calc_t1(list, num, p, mu, _stages) do
   	list
   	|> LogisticMapNif.map_calc_t1(num, p, mu)
   	receive do
