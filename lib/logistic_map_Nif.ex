@@ -2,8 +2,6 @@ defmodule LogisticMapNif do
   use Rustler, otp_app: :logistic_map, crate: :logistic_map
 
   # When your NIF is loaded, it will override this function.
-  def init_nif(), do: :erlang.nif_error(:nif_not_loaded)
-
   def call_ocl(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
 
   def call_ocl2(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
@@ -65,7 +63,6 @@ defmodule LogisticMapNif do
 	end
 
   def init do
-    init_nif()
   	[[key: "LogisticMapNif_map_calc_list", function: fn x -> map_calc_list(x, 10, 61, 22) end, is_map_calc: true],
   	 [key: "LogisticMapNif_map_calc_binary", function: fn x -> x |> Enum.reduce("", fn (x, acc) -> acc<><<x>> end) |> map_calc_binary(10, 61, 22) end, is_map_calc: true],
   	 [key: "LogisticMapNif_map_calc_binary_to_binary", function: fn x -> x |> to_binary |> map_calc_binary(10, 61, 22) end, is_map_calc: true],

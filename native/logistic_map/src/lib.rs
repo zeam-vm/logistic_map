@@ -19,6 +19,7 @@ use std::str;
 use std::ops::Range;
 
 use rayon::prelude::*;
+use rayon::ThreadPool;
 
 use ocl::{ProQue, Buffer, MemFlags};
 
@@ -41,8 +42,7 @@ rustler_export_nifs! {
 //     ("call_ocl", 3, call_ocl, NifScheduleFlags::DirtyCpu)],
      ("call_ocl", 3, call_ocl),
      ("call_ocl2", 3, call_ocl2),
-     ("map_calc_t1", 4, map_calc_t1),
-     ("init_nif", 0, init_nif)],
+     ("map_calc_t1", 4, map_calc_t1)],
     None
 }
 
@@ -50,10 +50,8 @@ lazy_static! {
     static ref POOL:scoped_pool::Pool = scoped_pool::Pool::new(8);
 }
 
-
-fn init_nif<'a>(env: Env<'a>, _args: &[Term<'a>]) -> NifResult<Term<'a>> {
-    let _ = rayon::ThreadPoolBuilder::new().num_threads(32).build_global().unwrap();
-    Ok(atoms::ok().encode(env))
+lazy_static! {
+    static ref _THREAD_POOL: ThreadPool = rayon::ThreadPoolBuilder::new().num_threads(32).build().unwrap();
 }
 
 fn to_range(arg: Term) -> Range<i64> {
