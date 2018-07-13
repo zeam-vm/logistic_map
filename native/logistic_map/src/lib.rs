@@ -16,7 +16,7 @@ use rustler::types::tuple::make_tuple;
 use std::mem;
 use std::slice;
 use std::str;
-use std::ops::Range;
+use std::ops::RangeInclusive;
 
 use rayon::prelude::*;
 use rayon::ThreadPool;
@@ -54,7 +54,7 @@ lazy_static! {
     static ref _THREAD_POOL: ThreadPool = rayon::ThreadPoolBuilder::new().num_threads(32).build().unwrap();
 }
 
-fn to_range(arg: Term) -> Result<Range<i64>, Error> {
+fn to_range(arg: Term) -> Result<RangeInclusive<i64>, Error> {
     let iter = arg.decode::<MapIterator>()?;
     let mut vec:Vec<(Term, Term)> = vec![];
     for (key, value) in iter {
@@ -66,7 +66,7 @@ fn to_range(arg: Term) -> Result<Range<i64>, Error> {
                 "Elixir.Range" => {
                     let first = vec[1].1.decode::<i64>()?;
                     let last = vec[2].1.decode::<i64>()?;
-                    Ok(std::ops::Range {start: first, end: last + 1})
+                    Ok(first ..= last)
                 },
                 _ => Err(Error::BadArg),
             }
