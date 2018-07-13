@@ -56,10 +56,7 @@ lazy_static! {
 
 fn to_range(arg: Term) -> Result<RangeInclusive<i64>, Error> {
     let iter = arg.decode::<MapIterator>()?;
-    let mut vec:Vec<(Term, Term)> = vec![];
-    for (key, value) in iter {
-        vec.push((key, value));
-    }
+    let vec:Vec<(Term, Term)> = iter.collect();
     match &*vec[0].0.atom_to_string()? {
         "__struct__" => {
             match &*vec[0].1.atom_to_string()? {
