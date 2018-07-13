@@ -66,12 +66,10 @@ fn to_range(arg: Term) -> Result<RangeInclusive<i64>, Error> {
 }
 
 fn to_list(arg: Term) -> Result<Vec<i64>, Error> {
-    match arg.is_map() {
-        true => Ok(to_range(arg)?.collect::<Vec<i64>>()),
-        false => match arg.is_list() {
-            true => Ok(arg.decode::<Vec<i64>>()?),
-            false => Err(Error::BadArg)
-        },
+    match (arg.is_map(), arg.is_list() || arg.is_empty_list()) {
+        (true, false) => Ok(to_range(arg)?.collect::<Vec<i64>>()),
+        (false, true) => Ok(arg.decode::<Vec<i64>>()?),
+        _ => Err(Error::BadArg),
     }
 }
 
