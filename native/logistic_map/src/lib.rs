@@ -8,7 +8,6 @@ extern crate scoped_pool;
 
 use rustler::{Env, Term, NifResult, Encoder, Error};
 use rustler::env::{OwnedEnv, SavedTerm};
-use rustler::types::list::ListIterator;
 use rustler::types::map::MapIterator;
 use rustler::types::binary::Binary;
 
@@ -70,17 +69,7 @@ fn to_list(arg: Term) -> Result<Vec<i64>, Error> {
     match arg.is_map() {
         true => Ok(to_range(arg)?.collect::<Vec<i64>>()),
         false => match arg.is_list() {
-            true => {
-                let iter: ListIterator = try!(arg.decode());
-                let res: Result<Vec<i64>, Error> = iter
-                    .map(|x| x.decode::<i64>())
-                    .collect();
-
-                match res {
-                    Ok(result) => Ok(result),
-                    Err(_) => Err(Error::BadArg)
-                }
-            },
+            true => Ok(arg.decode::<Vec<i64>>()?),
             false => Err(Error::BadArg)
         },
     }
