@@ -55,8 +55,7 @@ lazy_static! {
 }
 
 fn to_range(arg: Term) -> Result<RangeInclusive<i64>, Error> {
-    let iter = arg.decode::<MapIterator>()?;
-    let vec:Vec<(Term, Term)> = iter.collect();
+    let vec:Vec<(Term, Term)> = arg.decode::<MapIterator>()?.collect();
     match (&*vec[0].0.atom_to_string()?, &*vec[0].1.atom_to_string()?) {
         ("__struct__", "Elixir.Range") => {
             let first = vec[1].1.decode::<i64>()?;
