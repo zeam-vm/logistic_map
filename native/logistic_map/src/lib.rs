@@ -16,7 +16,7 @@ use std::mem;
 use std::slice;
 use std::str;
 use rayon::prelude::*;
- 
+
 use ocl::{ProQue, Buffer, MemFlags};
 
 mod atoms {
@@ -44,13 +44,13 @@ rustler_export_nifs! {
 }
 
 lazy_static! {
-    static ref POOL:scoped_pool::Pool = scoped_pool::Pool::new(8);
+    static ref POOL:scoped_pool::Pool = scoped_pool::Pool::new(2);
 }
 
 
 fn init_nif<'a>(env: Env<'a>, _args: &[Term<'a>]) -> NifResult<Term<'a>> {
     let _ = rayon::ThreadPoolBuilder::new().num_threads(32).build_global().unwrap();
-    Ok(atoms::ok().encode(env))        
+    Ok(atoms::ok().encode(env))
 }
 
 
