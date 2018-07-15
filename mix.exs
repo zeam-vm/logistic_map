@@ -39,7 +39,7 @@ defmodule LogisticMap.MixProject do
     [
       {:flow, "~> 0.14.0"},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:rustler, "~> 0.17.1"}
+      {:rustler, "~> 0.18.0"}
     ]
   end
 end
