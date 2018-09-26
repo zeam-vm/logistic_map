@@ -1,26 +1,28 @@
 defmodule LogisticMapNif do
   use Rustler, otp_app: :logistic_map, crate: :logistic_map
+  require Asm
+  import Asm
 
   # When your NIF is loaded, it will override this function.
   def init_nif(), do: :erlang.nif_error(:nif_not_loaded)
 
-  def call_ocl(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
+  def call_ocl(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
 
-  def call_ocl2(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
+  def call_ocl2(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
 
-  def call_empty(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
+  def call_empty(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
 
-  def calc(_x, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
+  def calc(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
 
-  def map_calc_list(_list, _num, _p, _mu), do: :erlang.nif_error(:nif_not_loaded)
+  def map_calc_list(_list, num, p, mu) when is_int64(num) and is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
 
   def to_binary(_list), do:
   :erlang.nif_error(:nif_not_loaded)
 
-  def map_calc_binary(_binary, _num, _p, _mu), do:
+  def map_calc_binary(_binary, num, p, mu) when is_int64(num) and is_int64(p) and is_int64(mu), do:
   :erlang.nif_error(:nif_not_loaded)
 
-  def map_calc_t1(_list, _num, _p, _mu), do:
+  def map_calc_t1(_list, num, p, mu) when is_int64(num) and is_int64(p) and is_int64(mu), do:
   :erlang.nif_error(:nif_not_loaded)
 
   def floor(value, precision \\ 1) do
