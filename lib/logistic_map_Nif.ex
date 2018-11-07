@@ -6,10 +6,6 @@ defmodule LogisticMapNif do
   # When your NIF is loaded, it will override this function.
   def init_nif(), do: :erlang.nif_error(:nif_not_loaded)
 
-  def call_ocl(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
-
-  def call_ocl2(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
-
   def call_empty(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
 
   def calc(_x, p, mu) when is_int64(p) and is_int64(mu), do: :erlang.nif_error(:nif_not_loaded)
@@ -70,8 +66,7 @@ defmodule LogisticMapNif do
     init_nif()
   	[[key: "LogisticMapNif_map_calc_list", function: fn x -> map_calc_list(x, 10, 61, 22) end, is_map_calc: true],
   	 [key: "LogisticMapNif_map_calc_binary", function: fn x -> x |> Enum.reduce("", fn (x, acc) -> acc<><<x>> end) |> map_calc_binary(10, 61, 22) end, is_map_calc: true],
-  	 [key: "LogisticMapNif_map_calc_binary_to_binary", function: fn x -> x |> to_binary |> map_calc_binary(10, 61, 22) end, is_map_calc: true],
-     [key: "LogisticMapNif_call_ocl", function: fn x -> call_ocl(x, 61, 22) end, is_map_calc: true]]
+  	 [key: "LogisticMapNif_map_calc_binary_to_binary", function: fn x -> x |> to_binary |> map_calc_binary(10, 61, 22) end, is_map_calc: true]]
   	|> Enum.map(& min_calibration(&1))
   	|> IO.puts
   end

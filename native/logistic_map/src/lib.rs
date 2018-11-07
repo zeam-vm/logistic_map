@@ -2,7 +2,6 @@
 // #[macro_use] extern crate rustler_codegen;
 #[macro_use] extern crate lazy_static;
 
-extern crate ocl;
 extern crate rayon;
 extern crate scoped_pool;
 
@@ -18,8 +17,6 @@ use std::str;
 use std::ops::RangeInclusive;
 
 use rayon::prelude::*;
-
-use ocl::{ProQue, Buffer, MemFlags};
 
 mod atoms {
     rustler_atoms! {
@@ -37,9 +34,6 @@ rustler_export_nifs! {
      ("to_binary", 1, to_binary),
      ("map_calc_binary", 4, map_calc_binary),
      ("call_empty", 3, call_empty),
-//     ("call_ocl", 3, call_ocl, NifScheduleFlags::DirtyCpu)],
-     ("call_ocl", 3, call_ocl),
-     ("call_ocl2", 3, call_ocl2),
      ("map_calc_t1", 4, map_calc_t1),
      ("init_nif", 0, init_nif)],
     None
@@ -126,110 +120,6 @@ fn map_calc_binary<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
 
     let res = in_binary.iter().map(|&s| s as i64).map(|x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>();
     Ok(res.encode(env))
-}
-
-fn trivial(x: Vec<i64>, p: i64, mu: i64) -> ocl::Result<(Vec<i64>)> {
-    let src = r#"
-        __kernel void calc(__global long* input, __global long* output, long p, long mu) {
-            size_t i = get_global_id(0);
-            long x = input[i];
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            x = mu * x * (x + 1) % p;
-            output[i] = x;
-        }
-    "#;
-
-    let pro_que = ProQue::builder()
-        .src(src)
-        .dims(x.len())
-        .build().expect("Build ProQue");
-
-    let source_buffer = Buffer::builder()
-        .queue(pro_que.queue().clone())
-        .flags(MemFlags::new().read_write())
-        .len(x.len())
-        .copy_host_slice(&x)
-        .build()?;
-
-    let result_buffer: Buffer<i64> = Buffer::builder()
-        .queue(pro_que.queue().clone())
-        .flags(MemFlags::new().read_write())
-        .len(x.len())
-        .build()?;
-
-    let kernel = pro_que.kernel_builder("calc")
-        .arg(&source_buffer)
-        .arg(&result_buffer)
-        .arg(p)
-        .arg(mu)
-        .build()?;
-
-    unsafe { kernel.enq()?; }
-
-    let mut vec_result = vec![0; result_buffer.len()];
-    result_buffer.read(&mut vec_result).enq()?;
-    Ok(vec_result)
-}
-
-fn call_ocl<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
-    let p: i64 = try!(args[1].decode());
-    let mu: i64 = try!(args[2].decode());
-
-    match to_list(args[0]) {
-        Ok(result) => {
-            let r1: ocl::Result<(Vec<i64>)> = trivial(result, p, mu);
-            match r1 {
-               Ok(r2) => Ok(r2.encode(env)),
-               Err(_) => Err(Error::BadArg),
-            }
-        },
-        Err(err) => Err(err),
-    }
-}
-
-fn call_ocl2<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
-    let pid = env.pid();
-    let mut my_env = OwnedEnv::new();
-
-    let saved_list = my_env.run(|env| -> NifResult<SavedTerm> {
-        let list_arg = args[0].in_env(env);
-        let p        = args[1].in_env(env);
-        let mu       = args[2].in_env(env);
-        Ok(my_env.save(make_tuple(env, &[list_arg, p, mu])))
-    })?;
-
-    POOL.spawn(move || {
-        my_env.send_and_clear(&pid, |env| {
-            let result: NifResult<Term> = (|| {
-                let tuple = saved_list.load(env).decode::<(Term, i64, i64)>()?;
-                let p = tuple.1;
-                let mu = tuple.2;
-                match to_list(tuple.0) {
-                    Ok(result) => {
-                        let r1: ocl::Result<(Vec<i64>)> = trivial(result, p, mu);
-                        match r1 {
-                            Ok(r2) => Ok(r2.encode(env)),
-                            Err(_) => Err(Error::BadArg),
-                        }
-                    },
-                    Err(err) => Err(err)
-                }
-            })();
-            match result {
-                Err(_err) => env.error_tuple("test failed".encode(env)),
-                Ok(term) => term
-            }
-        });
-    });
-    Ok(atoms::ok().to_term(env))
 }
 
 fn call_empty<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
