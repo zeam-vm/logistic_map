@@ -65,6 +65,10 @@ defmodule LogisticMap do
       [28, 25, 37]
 
   """
+  def mapCalc(list, num, p, mu, 1) do
+    list
+    |> Enum.map(& loopCalc(num, &1, p, mu))
+  end
   def mapCalc(list, num, p, mu, stages) do
     list
     |> Flow.from_enumerable(stages: stages)
