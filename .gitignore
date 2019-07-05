@@ -30,3 +30,6 @@ mix.lock
 
 # Ignore log.txt
 log.txt
+
+# Ignore snapshots
+bench/snapshots
