@@ -12,6 +12,7 @@ use rustler::types::map::MapIterator;
 use rustler::types::binary::Binary;
 
 use rustler::types::tuple::make_tuple;
+use rustler::types::tuple::get_tuple;
 use std::mem;
 use std::slice;
 use std::str;
@@ -41,6 +42,7 @@ rustler_export_nifs! {
      ("call_ocl", 3, call_ocl),
      ("call_ocl2", 3, call_ocl2),
      ("map_calc_t1", 4, map_calc_t1),
+     ("map_calc_tuple", 4, map_calc_tuple),
      ("init_nif", 0, init_nif)],
     None
 }
@@ -266,6 +268,47 @@ fn map_calc_t1<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
                     Ok(result) => Ok(result.par_iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env)),
                     Err(err) => Err(err)
                 }
+            })();
+            match result {
+                Err(_err) => env.error_tuple("test failed".encode(env)),
+                Ok(term) => term
+            }
+        });
+    });
+    Ok(atoms::ok().to_term(env))
+}
+
+fn map_calc_tuple<'a>(env: Env<'a>, args: &[Term<'a>]) -> NifResult<Term<'a>> {
+    let pid = env.pid();
+    let mut my_env = OwnedEnv::new();
+
+    let saved_list = my_env.run(|env| -> NifResult<SavedTerm> {
+        let r = get_tuple(args[0]);
+        match r {
+            Ok(v) => {
+                let result: Result<Vec<_>, _> = v.into_iter().map(|t| t.decode::<i64>()).collect();
+                let num      = args[1].in_env(env);
+                let p        = args[2].in_env(env);
+                let mu       = args[3].in_env(env);
+                match result {
+                    Ok(r) => Ok(my_env.save(make_tuple(env, &[r.encode(env).in_env(env), num, p, mu]))),
+                    Err(err) => Err(err)
+                }
+            },
+            Err(err) => Err(err)
+        }
+    })?;
+
+    POOL.spawn(move || {
+        my_env.send_and_clear(&pid, |env| {
+            let result: NifResult<Term> = (|| {
+                let tuple = saved_list.load(env).decode::<(Vec<i64>, i64, i64, i64)>()?;
+                let vec = tuple.0;
+                let num = tuple.1;
+                let p = tuple.2;
+                let mu = tuple.3;
+
+                Ok(vec.par_iter().map(|&x| loop_calc(num, x, p, mu)).collect::<Vec<i64>>().encode(env))
             })();
             match result {
                 Err(_err) => env.error_tuple("test failed".encode(env)),

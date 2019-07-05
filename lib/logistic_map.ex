@@ -4,7 +4,7 @@ defmodule LogisticMap do
   @default_prime 6_700_417
   @default_mu 22
   @default_loop 10
-
+  @chunk_size 0x10000
 
   @moduledoc """
   Documentation for LogisticMap.
@@ -356,6 +356,28 @@ defmodule LogisticMap do
   	receive do
   		l -> l
   	end
+  end
+
+  @doc """
+
+  ## Examples
+
+      iex> 1..3 |> LogisticMap.map_calc_tuple(10, 61, 22, 1)
+      [28, 25, 37]
+  """
+  def map_calc_tuple(list, num, p, mu, _stages) do
+    list
+    |> Stream.chunk_every(@chunk_size)
+    |> Stream.map(& map_calc_tuple_sub(&1, num, p, mu))
+    |> Enum.to_list
+    |> List.flatten
+  end
+
+  defp map_calc_tuple_sub(list, num, p, mu) do
+    LogisticMapNif.map_calc_tuple(List.to_tuple(list), num, p, mu)
+    receive do
+      l -> l
+    end
   end
 
   @doc """

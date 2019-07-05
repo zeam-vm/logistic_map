@@ -25,6 +25,9 @@ defmodule LogisticMapNif do
   def map_calc_t1(_list, num, p, mu) when is_int64(num) and is_int64(p) and is_int64(mu), do:
   :erlang.nif_error(:nif_not_loaded)
 
+  def map_calc_tuple(_tuple, num, p, mu) when is_int64(num) and is_int64(p) and is_int64(mu), do:
+  :erlang.nif_error(:nif_not_loaded)
+
   def floor(value, precision \\ 1) do
     Float.floor(value / precision) * precision |> Kernel.trunc
   end
