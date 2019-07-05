@@ -8,7 +8,7 @@ defmodule LogisticMapBench do
   @default_mu 22
   @default_loop 10
   @range 1..@logistic_map_size
-  @chunk_size 0x100
+  @chunk_size 0x100000
   @chunk_list 1..@chunk_size |> Enum.to_list
 
   bench "calc" do
@@ -77,7 +77,7 @@ defmodule LogisticMapBench do
 
   bench "bench_tuple" do
     @range
-    |> LogisticMap.map_calc_tuple(@default_loop, @default_prime, @default_mu, System.schedulers_online)
+    |> LogisticMap.map_calc_tuple(@chunk_size, @default_loop, @default_prime, @default_mu)
   end
 
   bench "chunk_t1" do
